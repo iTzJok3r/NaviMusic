@@ -1,0 +1,2422 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  user-select: none;
+}
+
+body {
+  background: #0e0e14;
+  color: #f0f0f5;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.app-container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 250px;
+  background: #14141e;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 16px;
+}
+
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.logo-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #1db954, #14833b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3);
+}
+
+.logo-text h1 {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.logo-text span {
+  font-size: 11px;
+  color: #1db954;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-badge {
+  background: rgba(29, 185, 84, 0.12);
+  border: 1px solid rgba(29, 185, 84, 0.25);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #a3e7bc;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.status-badge:hover {
+  background: rgba(29, 185, 84, 0.2);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #1db954;
+  box-shadow: 0 0 8px #1db954;
+}
+
+.nav-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  color: #a0a0b5;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+
+.nav-item:hover, .nav-item.active {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+
+.nav-item.active {
+  color: #1db954;
+  font-weight: 600;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #0e0e14;
+  overflow-y: auto;
+  position: relative;
+}
+
+.top-bar {
+  padding: 18px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(14, 14, 20, 0.85);
+  backdrop-filter: blur(16px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  background: #1b1b26;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 8px 16px;
+  width: 340px;
+}
+
+.search-container input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  margin-left: 10px;
+  font-size: 14px;
+  width: 100%;
+}
+
+.content-body {
+  padding: 24px 32px;
+}
+
+.section-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: #161622;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.card:hover {
+  background: #1f1f2e;
+  transform: translateY(-4px);
+  border-color: rgba(29, 185, 84, 0.3);
+}
+
+.card-img {
+  width: 100%;
+  aspect-ratio: 1;
+  background: #252538;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  color: #7b7b95;
+  object-fit: cover;
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.card-subtitle {
+  font-size: 12px;
+  color: #8c8ca5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Song Table */
+.songs-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.songs-table th {
+  text-align: left;
+  padding: 12px 16px;
+  color: #7b7b95;
+  font-size: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.songs-table td {
+  padding: 12px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.songs-table tr {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.songs-table tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* Player Bar */
+.player-bar {
+  height: 86px;
+  background: #12121a;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  position: relative;
+  z-index: 20;
+}
+
+.player-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 280px;
+}
+
+.player-thumb {
+  width: 54px;
+  height: 54px;
+  background: #252538;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #7b7b95;
+  object-fit: cover;
+}
+
+.player-info h4 {
+  font-size: 14px;
+  font-weight: 600;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-info p {
+  font-size: 12px;
+  color: #8c8ca5;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  max-width: 600px;
+}
+
+.player-controls {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.control-btn {
+  background: none;
+  border: none;
+  color: #b0b0c5;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.control-btn:hover {
+  color: #fff;
+}
+
+.control-btn.active {
+  color: #1db954;
+  position: relative;
+}
+
+.control-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #1db954;
+}
+
+/* Action Button Group (Play All & Shuffle) */
+.action-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.btn-play-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #1db954;
+  color: #000;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 22px;
+  border-radius: 24px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px rgba(29, 185, 84, 0.35);
+}
+
+.btn-play-all:hover {
+  transform: scale(1.04);
+  background: #1ed760;
+  box-shadow: 0 6px 18px rgba(29, 185, 84, 0.5);
+}
+
+.btn-shuffle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 10px 20px;
+  border-radius: 24px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-shuffle:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: scale(1.04);
+}
+
+.play-pause-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #fff;
+  color: #000;
+  font-size: 16px;
+}
+
+.play-pause-btn:hover {
+  transform: scale(1.06);
+  background: #1db954;
+  color: #fff;
+}
+
+.progress-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.time-text {
+  font-size: 11px;
+  color: #7b7b95;
+  width: 36px;
+}
+
+.progress-bar-bg {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  position: relative;
+  cursor: pointer;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: #1db954;
+  border-radius: 4px;
+  width: 0%;
+}
+
+.player-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 280px;
+  justify-content: flex-end;
+}
+
+/* Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: #1a1a26;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 28px;
+  width: 440px;
+}
+
+/* Dialogs that carry class="modal" (Add to Playlist / Queue / Sleep Timer).
+   They previously had NO rule at all, so `display:flex` laid them out in
+   normal document flow at the bottom of the page: measured on a 392x822
+   phone they became 155-303px tall strips pinned to y=520..668, painted
+   UNDER the player bar and not hit-testable. They are overlays; style them
+   like one. They sit above the full-screen overlays because they are sheets
+   opened from them (e.g. Add to Playlist from the studio). */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1600;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 4, 8, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 18px;
+  box-sizing: border-box;
+}
+
+.modal .modal-content {
+  width: 100%;
+  max-width: 440px;
+  max-height: 86vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+}
+
+/* Lyrics Modal Styles */
+.lyrics-modal-content {
+  width: 580px;
+  max-width: 90vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.lyrics-container {
+  overflow-y: auto;
+  max-height: 60vh;
+  padding: 16px 12px;
+  scroll-behavior: smooth;
+  text-align: center;
+}
+
+.lyric-line {
+  padding: 12px 16px;
+  font-size: 15px;
+  color: #7b7b95;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: text;
+}
+
+.lyric-line:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.lyric-line.active {
+  color: #1db954;
+  font-size: 19px;
+  font-weight: 700;
+  transform: scale(1.04);
+  text-shadow: 0 0 20px rgba(29, 185, 84, 0.45);
+  background: rgba(29, 185, 84, 0.08);
+}
+
+/* Upload System Styles */
+.upload-drop-zone {
+  border: 2px dashed rgba(29, 185, 84, 0.35);
+  background: rgba(29, 185, 84, 0.03);
+  border-radius: 16px;
+  padding: 48px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s;
+  margin-bottom: 24px;
+}
+
+.upload-drop-zone:hover, .upload-drop-zone.dragover {
+  border-color: #1db954;
+  background: rgba(29, 185, 84, 0.08);
+  transform: translateY(-2px);
+}
+
+.upload-queue-card {
+  background: #161622;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.queue-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 13px;
+}
+
+.queue-item:last-child {
+  border-bottom: none;
+}
+
+.status-badge-upload {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.status-ready {
+  background: rgba(255, 255, 255, 0.08);
+  color: #a0a0b5;
+}
+
+.status-uploading {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+.status-done {
+  background: rgba(29, 185, 84, 0.15);
+  color: #1db954;
+}
+
+.status-error {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+/* Top Bar Quick Action Buttons */
+.top-action-btn {
+  background: #1b1b26;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #cfcfe2;
+  padding: 7px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.top-action-btn:hover {
+  background: rgba(29, 185, 84, 0.15);
+  border-color: rgba(29, 185, 84, 0.35);
+  color: #1db954;
+}
+
+.top-action-btn .btn-label {
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* Lyrics Ticker in Player Bar */
+.lyrics-ticker {
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 280px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.lyrics-ticker .ticker-icon {
+  font-size: 11px;
+  color: #1db954;
+  flex-shrink: 0;
+}
+
+.lyrics-ticker span {
+  font-size: 11px;
+  color: #8c8ca5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.2s;
+}
+
+.lyrics-ticker:hover span {
+  color: #1db954;
+}
+
+/* Mini Spectrum Visualizer */
+.mini-visualizer {
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.25);
+  margin-right: 6px;
+}
+
+/* Apple Music Style Dynamic Lyrics Backdrop */
+.lyrics-backdrop {
+  position: absolute;
+  inset: -40px;
+  background: radial-gradient(circle at 30% 30%, rgba(29, 185, 84, 0.25), transparent 70%),
+              radial-gradient(circle at 70% 70%, rgba(59, 130, 246, 0.2), transparent 70%);
+  filter: blur(60px);
+  opacity: 0.65;
+  pointer-events: none;
+  z-index: 0;
+  transition: all 1.2s ease;
+}
+
+.lyrics-modal-content {
+  position: relative;
+  z-index: 1;
+  background: rgba(18, 18, 26, 0.88) !important;
+  backdrop-filter: blur(28px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
+  width: 680px;
+  max-width: 90vw;
+  height: 600px;
+  display: flex;
+  flex-direction: column;
+}
+
+.lyrics-modal-content.fullscreen {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  height: 100vh !important;
+  border-radius: 0 !important;
+  border: none !important;
+}
+
+.lyrics-modal-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  min-width: 0;
+}
+
+/* Identity row. min-width:0 on every flex level is what actually lets the
+   title ellipsize instead of shoving the close button off-screen. */
+.lyrics-head-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.lyrics-head-meta {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.lyrics-head-meta h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lyrics-head-meta p {
+  margin: 2px 0 0 0;
+  font-size: 12px;
+  color: #a0a0b5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Secondary tools. Wide screens wrap; narrow screens scroll sideways inside
+   this row only — the close button above is never part of the overflow. */
+.lyrics-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.lyrics-close-btn {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.lyrics-close-btn:hover,
+.lyrics-close-btn:active {
+  background: rgba(239, 68, 68, 0.9);
+  transform: scale(1.04);
+}
+
+.lyrics-header-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(29, 185, 84, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1db954;
+  font-size: 20px;
+  overflow: hidden;
+}
+
+.lyrics-header-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lyrics-source-tag {
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(29, 185, 84, 0.15);
+  color: #1db954;
+  border: 1px solid rgba(29, 185, 84, 0.3);
+  padding: 4px 10px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.lyrics-saved-badge {
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  padding: 4px 10px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.lyrics-visualizer-canvas {
+  width: 100%;
+  height: 34px;
+  border-radius: 6px;
+  margin: 10px 0 6px 0;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.lyrics-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 16px;
+  text-align: center;
+  scroll-behavior: smooth;
+}
+
+.lyrics-container .lyric-line {
+  font-size: 17px;
+  line-height: 1.6;
+  padding: 12px 20px;
+  color: #6d6d84;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 12px;
+}
+
+.lyrics-container .lyric-line:hover {
+  color: #e0e0f0;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.lyrics-container .lyric-line.active {
+  color: #ffffff;
+  font-size: 23px;
+  font-weight: 800;
+  transform: scale(1.03);
+  background: rgba(29, 185, 84, 0.12);
+  text-shadow: 0 0 24px rgba(29, 185, 84, 0.6);
+  padding: 16px 24px;
+}
+
+/* Studio 10-Band Equalizer Modal */
+.eq-modal-content {
+  width: 720px;
+  max-width: 92vw;
+  background: #14141e;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
+  padding: 24px;
+  border-radius: 16px;
+}
+
+.eq-preset-dropdown {
+  background: #1e1e2c;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+}
+
+.eq-sliders-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  background: #0f0f17;
+  padding: 24px 18px 18px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 20px;
+}
+
+.eq-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.eq-col .eq-db-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #1db954;
+  height: 16px;
+}
+
+.eq-col input[type="range"] {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  height: 140px;
+  width: 22px;
+  accent-color: #1db954;
+  cursor: pointer;
+}
+
+.eq-col .eq-freq-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #8c8ca5;
+  text-transform: uppercase;
+}
+
+.eq-extras-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.eq-extra-card {
+  background: #1b1b26;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 14px 16px;
+  border-radius: 10px;
+}
+
+.eq-extra-card .extra-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.eq-horizontal-slider {
+  width: 100%;
+  margin-top: 10px;
+  accent-color: #1db954;
+  cursor: pointer;
+}
+
+.eq-action-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.eq-action-btn.secondary {
+  background: #252538;
+  color: #c0c0d5;
+}
+
+.eq-action-btn.secondary:hover {
+  background: #323249;
+  color: #ffffff;
+}
+
+/* Mini Player Mode Styles */
+.mini-player-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #0d0d14;
+  z-index: 9999;
+  flex-direction: column;
+  padding: 12px 16px;
+  overflow: hidden;
+}
+
+body.mini-mode .app-container,
+body.mini-mode .player-bar,
+body.mini-mode .modal-overlay {
+  display: none !important;
+}
+
+body.mini-mode .mini-player-overlay {
+  display: flex !important;
+}
+
+.mini-player-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.mini-app-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #a0a0b5;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mini-icon-btn {
+  background: transparent;
+  border: none;
+  color: #7b7b95;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.mini-icon-btn:hover {
+  color: #1db954;
+}
+
+.mini-player-body {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mini-thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #1b1b26;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7b7b95;
+  flex-shrink: 0;
+}
+
+.mini-track-meta {
+  flex: 1;
+  overflow: hidden;
+}
+
+.mini-track-meta h4 {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-track-meta p {
+  font-size: 11px;
+  color: #8c8ca5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-lyric-live {
+  font-size: 11px;
+  color: #1db954;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 3px;
+}
+
+.mini-canvas-wave {
+  width: 100%;
+  height: 24px;
+  margin: 8px 0;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.mini-controls-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+
+.mini-ctrl-btn {
+  background: #1b1b26;
+  border: none;
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.mini-ctrl-btn:hover {
+  background: #28283a;
+  color: #1db954;
+}
+
+.mini-ctrl-btn.play-btn {
+  background: #1db954;
+  color: #000;
+  width: 38px;
+  height: 38px;
+  font-size: 14px;
+}
+
+/* Delete Song Button in Tables and Queues */
+.btn-action-delete {
+  background: transparent;
+  border: none;
+  color: #7b7b95;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.btn-action-delete:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.btn-action-playlist {
+  background: transparent;
+  border: none;
+  color: #7b7b95;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.btn-action-playlist:hover {
+  color: #1db954;
+  background: rgba(29, 185, 84, 0.15);
+}
+
+.track-filter-group {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  margin-bottom: 6px;
+}
+
+.track-filter-pill {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: #8c8ca5;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.track-filter-pill:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.track-filter-pill.active {
+  background: #1db954;
+  color: #000;
+  border-color: #1db954;
+  font-weight: 700;
+}
+
+.track-source-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  vertical-align: middle;
+  margin-left: 6px;
+}
+
+[dir="rtl"] .track-source-badge {
+  margin-left: 0;
+  margin-right: 6px;
+}
+
+.track-source-badge.cloud {
+  background: rgba(29, 185, 84, 0.15);
+  color: #1db954;
+  border: 1px solid rgba(29, 185, 84, 0.3);
+}
+
+.track-source-badge.device {
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+
+/* ============================================================
+   Brand Identity & Animated Emblem
+   ============================================================ */
+.brand-logo-badge {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-logo-img {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 0 16px rgba(29, 185, 84, 0.4), 0 0 30px rgba(99, 102, 241, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  z-index: 2;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.brand-logo-badge:hover .brand-logo-img {
+  transform: scale(1.08) rotate(3deg);
+}
+
+.brand-glow-ring {
+  position: absolute;
+  inset: -3px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #1db954, #818cf8, #06b6d4);
+  opacity: 0.6;
+  filter: blur(8px);
+  z-index: 1;
+  animation: pulseAura 4s ease-in-out infinite alternate;
+}
+
+@keyframes pulseAura {
+  0% { transform: scale(0.92); opacity: 0.4; }
+  100% { transform: scale(1.08); opacity: 0.75; }
+}
+
+.brand-title {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  background: linear-gradient(135deg, #ffffff 40%, #1db954 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-subtitle {
+  font-size: 11px;
+  color: #8c8ca5;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* ============================================================
+   Animated Aurora Ambient Glow Background
+   ============================================================ */
+.aurora-ambient-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  opacity: 0.28;
+  mix-blend-mode: screen;
+}
+
+.aurora-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  will-change: transform, opacity;
+}
+
+.orb-1 {
+  width: 550px;
+  height: 550px;
+  background: radial-gradient(circle, rgba(29, 185, 84, 0.45) 0%, transparent 70%);
+  top: -100px;
+  left: 10%;
+  animation: floatOrb1 18s ease-in-out infinite alternate;
+}
+
+.orb-2 {
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, transparent 70%);
+  bottom: -150px;
+  right: 5%;
+  animation: floatOrb2 22s ease-in-out infinite alternate;
+}
+
+.orb-3 {
+  width: 450px;
+  height: 450px;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.35) 0%, transparent 70%);
+  top: 40%;
+  left: 45%;
+  animation: floatOrb3 15s ease-in-out infinite alternate;
+}
+
+@keyframes floatOrb1 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(80px, 60px) scale(1.15); }
+  100% { transform: translate(-40px, 100px) scale(0.9); }
+}
+
+@keyframes floatOrb2 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-90px, -70px) scale(1.1); }
+  100% { transform: translate(50px, -50px) scale(0.95); }
+}
+
+@keyframes floatOrb3 {
+  0% { transform: translate(0, 0) scale(0.9); }
+  50% { transform: translate(-60px, 80px) scale(1.2); }
+  100% { transform: translate(70px, -40px) scale(1); }
+}
+
+/* ============================================================
+   Language Switcher & Header Controls
+   ============================================================ */
+.lang-toggle-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lang-toggle-btn:hover {
+  background: rgba(29, 185, 84, 0.2);
+  border-color: #1db954;
+  color: #1db954;
+  transform: translateY(-1px);
+}
+
+/* ============================================================
+   Full Arabic & RTL (Right-to-Left) Support
+   ============================================================ */
+[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir="rtl"] * {
+  font-family: 'Cairo', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+[dir="rtl"] .sidebar {
+  border-right: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+[dir="rtl"] .search-container input {
+  text-align: right;
+}
+
+[dir="rtl"] .search-container i {
+  margin-left: 10px;
+  margin-right: 0;
+}
+
+[dir="rtl"] .player-left {
+  margin-right: 0;
+  margin-left: 20px;
+}
+
+[dir="rtl"] .lyrics-ticker .ticker-icon {
+  margin-right: 0;
+  margin-left: 6px;
+}
+
+[dir="rtl"] .player-right {
+  direction: ltr; /* Keeps visualizer and volume control intuitive */
+}
+
+[dir="rtl"] .songs-table th, [dir="rtl"] .songs-table td {
+  text-align: right;
+}
+
+[dir="rtl"] .songs-table th:first-child, [dir="rtl"] .songs-table td:first-child {
+  text-align: center;
+}
+
+[dir="rtl"] .songs-table th:nth-child(5), [dir="rtl"] .songs-table td:nth-child(5) {
+  text-align: left;
+}
+
+[dir="rtl"] .songs-table th:nth-child(6), [dir="rtl"] .songs-table td:nth-child(6) {
+  text-align: center;
+}
+
+[dir="rtl"] .top-bar div[style*="margin-left: 6px"] {
+  margin-left: 0 !important;
+  margin-right: 6px !important;
+}
+
+/* ============================================================
+   Keyboard Shortcuts Modal
+   ============================================================ */
+.shortcuts-modal-content {
+  width: 620px;
+  max-width: 92vw;
+  background: #14141e;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(29, 185, 84, 0.15);
+  border-radius: 16px;
+  padding: 24px 28px;
+}
+
+.shortcuts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.shortcut-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.shortcut-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.shortcut-keys {
+  display: flex;
+  gap: 5px;
+}
+
+kbd {
+  background: #1e1e2c;
+  color: #1db954;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+
+.shortcut-desc {
+  font-size: 13px;
+  color: #c5c5d6;
+}
+
+/* ============================================================
+   Now Playing Studio & Pro Audio Effects
+   ============================================================ */
+.now-playing-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.now-playing-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 8, 12, 0.85);
+  backdrop-filter: blur(35px);
+  -webkit-backdrop-filter: blur(35px);
+}
+
+.now-playing-container {
+  position: relative;
+  width: 94vw;
+  max-width: 1150px;
+  height: 88vh;
+  max-height: 750px;
+  background: rgba(18, 18, 28, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9), 0 0 50px rgba(29, 185, 84, 0.12);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: npFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes npFadeIn {
+  from { opacity: 0; transform: scale(0.96) translateY(12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.now-playing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.now-playing-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  padding: 20px 28px;
+  overflow-y: auto;
+}
+
+@media (max-width: 820px) {
+  .now-playing-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+.np-left-pane {
+  display: flex;
+  flex-direction: column;
+}
+
+.np-art-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto 14px auto;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7);
+  background: #181824;
+}
+
+.np-art-img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+}
+
+.np-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 64px;
+  color: #7b7b95;
+}
+
+/* Skeleton Shimmer Loading Effect */
+@keyframes shimmerAnim {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-box {
+  display: inline-block;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 25%, rgba(255, 255, 255, 0.12) 50%, rgba(255, 255, 255, 0.04) 75%);
+  background-size: 200% 100%;
+  animation: shimmerAnim 1.6s ease-in-out infinite;
+  border-radius: 6px;
+  vertical-align: middle;
+}
+
+.skeleton-track-row td {
+  padding: 14px 12px;
+}
+
+.np-visualizer-canvas {
+  width: 100%;
+  height: 90px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 12px;
+  margin-top: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.np-meta {
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+.np-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.np-artist {
+  font-size: 14px;
+  color: #8c8ca5;
+}
+
+.np-effects-panel {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 14px;
+  margin-top: auto;
+}
+
+.np-effects-header {
+  font-size: 13px;
+  font-weight: 700;
+  color: #e5e7eb;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.np-effects-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.fx-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.fx-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.fx-card.active {
+  background: rgba(29, 185, 84, 0.12);
+  border-color: rgba(29, 185, 84, 0.5);
+  box-shadow: 0 0 15px rgba(29, 185, 84, 0.15);
+}
+
+.fx-icon {
+  font-size: 18px;
+  color: #1db954;
+  width: 24px;
+  text-align: center;
+}
+
+.fx-info {
+  flex: 1;
+}
+
+.fx-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.fx-desc {
+  font-size: 10px;
+  color: #8c8ca5;
+  margin-top: 2px;
+}
+
+.fx-card-wide {
+  grid-column: span 2;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.speed-btn-group {
+  display: flex;
+  gap: 6px;
+}
+
+.speed-btn {
+  flex: 1;
+  background: #252538;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #fff;
+  padding: 5px 0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+.speed-btn:hover {
+  background: #32324a;
+}
+
+.speed-btn.active {
+  background: #1db954;
+  color: #000;
+  border-color: #1db954;
+}
+
+.fx-level-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8c8ca5;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Right Pane: Lyrics */
+.np-right-pane {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 380px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 16px 20px;
+  overflow: hidden;
+}
+
+.np-lyrics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.np-lyrics-scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  padding: 24px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.np-lyric-line {
+  font-size: 19px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  line-height: 1.6;
+}
+
+.np-lyric-line:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.np-lyric-line.active {
+  color: #ffffff;
+  font-size: 23px;
+  font-weight: 700;
+  text-shadow: 0 0 20px rgba(29, 185, 84, 0.6);
+  transform: scale(1.02);
+  transform-origin: left center;
+}
+
+[dir="rtl"] .np-lyric-line.active {
+  transform-origin: right center;
+}
+
+/* No-Beat Button in Player Bar */
+#noBeatBtn.active {
+  color: #1db954;
+  border-color: rgba(29, 185, 84, 0.6);
+  background: rgba(29, 185, 84, 0.15);
+  text-shadow: 0 0 10px rgba(29, 185, 84, 0.8);
+}
+
+
+
+/* =========================================================
+   Mobile / narrow screens (phones and small windows)
+   ---------------------------------------------------------
+   The shell is `display:flex` with a permanently visible 250px sidebar, so on a
+   phone (~410 CSS px wide) the sidebar and the content each got half the screen
+   and the library table was clipped. Below 860px the sidebar becomes an
+   off-canvas drawer, the top bar collapses, and the player bar reflows.
+   ========================================================= */
+.mobile-only { display: none !important; }
+
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 55;
+}
+
+@media (max-width: 860px) {
+  html, body { overflow-x: hidden; }
+
+  .app-container { display: block; }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(80vw, 300px);
+    z-index: 60;
+    transform: translateX(-102%);
+    transition: transform 0.25s ease;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.65);
+    padding-top: calc(18px + env(safe-area-inset-top));
+    overflow-y: auto;
+  }
+
+  .sidebar.open { transform: translateX(0); }
+
+  [dir="rtl"] .sidebar {
+    left: auto;
+    right: 0;
+    transform: translateX(102%);
+  }
+
+  [dir="rtl"] .sidebar.open { transform: translateX(0); }
+
+  .sidebar-backdrop.show { display: block; }
+
+  .main-content { width: 100%; }
+
+  .mobile-only {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .top-bar {
+    padding: 12px 14px;
+    gap: 8px;
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+
+  .search-container {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+
+  .top-bar .top-action-btn { padding: 8px 10px; }
+
+  .top-bar .btn-label,
+  #userLoggedInLabel,
+  #vizModeLabel { display: none !important; }
+
+  .top-bar > div:last-child { gap: 6px; flex-shrink: 0; }
+
+  .content-body {
+    padding: 14px;
+    overflow-x: auto;
+  }
+
+  /* Let wide library tables scroll instead of being clipped. */
+  .content-body table { min-width: 620px; }
+
+  .track-filter-group {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .track-filter-pill {
+    font-size: 12px;
+    padding: 7px 10px;
+  }
+
+  .player-bar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
+  }
+
+  .player-left { flex: 1 1 100%; min-width: 0; }
+  .player-center { flex: 1 1 100%; order: 2; }
+
+  .player-right {
+    flex: 1 1 100%;
+    order: 3;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .player-right .mini-visualizer,
+  #playerMiniBtn,
+  #fullscreenBtn,
+  #sleepTimerBtn { display: none !important; }
+
+  .progress-area { width: 100%; }
+
+  #volumeSlider { width: 70px !important; }
+
+  .now-playing-body {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 14px;
+  }
+
+  .np-effects-grid { grid-template-columns: 1fr 1fr; }
+  .np-art-wrapper { max-width: 240px; }
+}
+
+/* =========================================================
+   Mobile follow-ups
+   ========================================================= */
+@media (max-width: 860px) {
+  /* Two columns instead of one giant square card per row. */
+  .cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .card { padding: 10px; border-radius: 10px; }
+  .card-title { font-size: 13px; }
+  .card-subtitle { font-size: 11px; }
+  .section-title { font-size: 18px; margin-bottom: 12px; }
+
+  /* The bar wraps into up to three rows on a phone; the desktop 86px height
+     clipped the wrapped controls. */
+  .player-bar {
+    height: auto;
+    min-height: 86px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+
+  #subtitleModal .modal-content { width: 94% !important; max-height: 88vh; }
+}
+
+/* =========================================================
+   Mobile round 3: scrolling + top bar
+   ---------------------------------------------------------
+   Two real defects were measured on the device:
+     - .app-container was switched to display:block, which broke the flex chain so
+       .main-content grew to its full content height (34886px) while body stayed
+       overflow:hidden => nothing could be scrolled by touch at all.
+     - the top bar was 457px wide inside a 393px viewport, so its last button sat
+       off-screen and only appeared when the bar was swiped sideways.
+   ========================================================= */
+@media (max-width: 860px) {
+  /* Restore a flex chain that can actually scroll. */
+  .app-container {
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+  }
+
+  .main-content {
+    flex: 1 1 auto;
+    min-height: 0;                 /* required for a flex child to scroll */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  .content-body { overflow-x: auto; }
+
+  /* Top bar: only the three controls that must always be reachable stay here.
+     The rest live in the drawer (see the mobile-only nav block in renderer.html),
+     so nothing is hidden behind a sideways swipe any more. */
+  .top-bar {
+    overflow: visible;
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+
+  #vizModeBtn,
+  #topEqBtn,
+  #shortcutsBtn,
+  #topMiniBtn,
+  #topFsBtn { display: none !important; }
+
+  /* Uniform, comfortable tap targets instead of 33x30 icons next to an 82px pill. */
+  .top-bar .top-action-btn {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  #langToggleBtn { width: auto; padding: 0 12px; }
+
+  .search-container { flex: 1 1 auto; min-width: 0; }
+
+  /* Secondary actions inside the drawer. */
+  .sidebar .mobile-only { display: flex !important; align-items: center; }
+
+  .player-right .control-btn { width: 40px; height: 40px; }
+}
+
+/* =========================================================
+   Mobile round 4: make .main-content the single vertical scroller
+   ---------------------------------------------------------
+   `overflow-x: auto` on .content-body was the bug: per CSS, a visible/auto pair
+   computes to auto/auto, so the body became its own scroll container and absorbed
+   the content height (main-content's scrollHeight equalled its clientHeight), which
+   left nothing scrollable by touch.
+   ========================================================= */
+@media (max-width: 860px) {
+  /* Not a scroll container any more - .main-content does the scrolling. */
+  .content-body {
+    overflow: visible;
+    padding-bottom: 12px;
+  }
+
+  .main-content {
+    overflow-y: auto;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Reclaim vertical space for the list: hardware volume keys already exist. */
+  #volumeIcon,
+  #volumeSlider { display: none !important; }
+
+  .player-bar { min-height: 0; gap: 6px; padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); }
+  .player-right { justify-content: center; }
+  .progress-area { margin-top: 2px; }
+}
+/* =========================================================
+   Floating draggable lyrics overlay
+   ========================================================= */
+.float-lyrics {
+  position: fixed;
+  z-index: 130;
+  max-width: 88vw;
+  min-width: 180px;
+  padding: 8px 12px 10px 12px;
+  border-radius: 14px;
+  background: rgba(10, 10, 16, 0.42);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.45);
+  color: #fff;
+  user-select: none;
+  touch-action: none;          /* let the drag handler own touch gestures */
+  cursor: grab;
+}
+
+.float-lyrics.dragging { cursor: grabbing; opacity: 0.96; }
+
+.float-lyrics-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  opacity: 0.55;
+  transition: opacity 0.2s;
+}
+
+.float-lyrics:hover .float-lyrics-bar,
+.float-lyrics.dragging .float-lyrics-bar { opacity: 1; }
+
+.float-lyrics-grip {
+  flex: 1;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #b3b3c9;
+}
+
+.float-lyrics-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: #eaeaf2;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.float-lyrics-btn:hover { background: rgba(29, 185, 84, 0.25); color: #fff; }
+
+.float-lyrics-text {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.45;
+  text-align: center;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85), 0 0 2px rgba(0, 0, 0, 0.9);
+  word-break: break-word;
+}
+
+.float-lyrics-text.size-lg { font-size: 22px; }
+.float-lyrics-text.size-xl { font-size: 28px; }
+
+.float-lyrics .float-lyrics-empty { color: #b3b3c9; font-weight: 400; font-size: 14px; }
+
+@media (max-width: 860px) {
+  .float-lyrics { max-width: 92vw; }
+  .float-lyrics-text { font-size: 16px; }
+  .float-lyrics-text.size-lg { font-size: 20px; }
+  .float-lyrics-text.size-xl { font-size: 25px; }
+}
+
+/* =========================================================
+   Mobile round 5: the songs table must fit a phone
+   ---------------------------------------------------------
+   The All Tracks table has 7 columns (#, title, artist, album, duration, add,
+   delete) and forced min-width 620px, so on a 393px screen the two action buttons
+   sat off-screen and the user had to swipe sideways to reach them. On phones the
+   album column is dropped and everything is compacted so the buttons are visible
+   without any horizontal scrolling (which also removes the RTL swipe confusion).
+   ========================================================= */
+@media (max-width: 860px) {
+  .content-body table {
+    width: 100%;
+    min-width: 0;              /* was 620px: the cause of the sideways scrolling */
+    table-layout: auto;
+  }
+
+  /* Album (4th column) is the least useful on a phone. */
+  .content-body table th:nth-child(4),
+  .content-body table td:nth-child(4) { display: none; }
+
+  .content-body table th,
+  .content-body table td {
+    padding: 8px 4px !important;
+    font-size: 12px;
+  }
+
+  /* Give the title the room it needs and keep the actions reachable. */
+  .content-body table td:nth-child(2) { max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
+  .content-body table td:nth-child(3) { max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .content-body table td:nth-child(6),
+  .content-body table td:nth-child(7),
+  .content-body table th:nth-child(6),
+  .content-body table th:nth-child(7) {
+    width: 38px;
+    padding: 6px 2px !important;
+  }
+
+  .btn-action-playlist,
+  .btn-action-delete {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Belt and braces: if a table is still wider than the screen, pin the action
+     columns to the inline edge so they can never be scrolled out of reach. */
+  .content-body table td:nth-child(7) { position: sticky; right: 0; background: #0e0e14; }
+  [dir="rtl"] .content-body table td:nth-child(7) { right: auto; left: 0; }
+}
+
+/* Battery: freeze the animated aurora background while audio is idle. */
+body.audio-idle .aurora-orb,
+body.audio-idle .aurora-ambient-bg {
+  animation-play-state: paused !important;
+}
+body.audio-idle .mini-visualizer { opacity: 0.35; }
+
+/* Kill the residual 12px horizontal overflow on phones (measured mainScrollWidth 405 vs 393). */
+@media (max-width: 860px) {
+  html, body { max-width: 100vw; overflow-x: hidden; }
+  .main-content { overflow-x: hidden; }
+}
+
+/* =========================================================
+   Now Playing Studio: never a dead end on a phone
+   ========================================================= */
+.np-close-btn {
+  position: fixed;
+  top: 14px;
+  inset-inline-end: 14px;
+  z-index: 300;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(20, 20, 30, 0.85);
+  color: #fff;
+  font-size: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+}
+.np-close-btn:hover { background: rgba(239, 68, 68, 0.85); }
+
+@media (max-width: 860px) {
+  /* The studio is a desktop grid: on a phone it must scroll and fit the viewport. */
+  .now-playing-modal .modal-content,
+  .now-playing-modal > div {
+    max-height: 94vh !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    padding: 14px 12px 84px 12px !important;
+  }
+  .now-playing-body { grid-template-columns: 1fr !important; gap: 12px !important; }
+  .np-effects-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+  .np-art-wrapper { max-width: 200px !important; }
+
+  /* ---- Lyrics screen: a phone page, not a desktop dialog ----
+     The old layout was a 680x600 centered dialog (90vw) whose header put
+     7 buttons in one non-wrapping row, so the ✕ landed off the right edge.
+     Below 860px it becomes a full-height sheet: identity row pinned with a
+     fixed 46px close button, tools in their own sideways-scrolling row. */
+  .lyrics-modal-content {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: 100vh !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    border: none !important;
+    padding: 10px 12px 14px 12px !important;
+  }
+
+  .lyrics-modal-header {
+    gap: 8px;
+    padding-bottom: 8px;
+    flex: 0 0 auto;
+  }
+
+  .lyrics-head-main { gap: 10px; }
+  .lyrics-head-meta h3 { font-size: 16px; }
+  .lyrics-head-meta p { font-size: 11px; }
+
+  .lyrics-header-thumb {
+    width: 38px;
+    height: 38px;
+    font-size: 17px;
+    flex: 0 0 auto;
+  }
+
+  /* Comfortable thumb target, always the last thing in a non-scrolling row. */
+  .lyrics-close-btn {
+    width: 46px;
+    height: 46px;
+    font-size: 20px;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .lyrics-head-actions {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .lyrics-head-actions::-webkit-scrollbar { display: none; }
+
+  .lyrics-head-actions > * { flex: 0 0 auto; }
+
+  .lyrics-head-actions .control-btn {
+    width: 42px;
+    height: 42px;
+    font-size: 15px;
+  }
+
+  .lyrics-source-tag,
+  .lyrics-saved-badge {
+    font-size: 10px;
+    padding: 5px 9px;
+    white-space: nowrap;
+  }
+
+  .lyrics-visualizer-canvas {
+    height: 30px;
+    margin: 8px 0 4px 0;
+  }
+
+  /* Bigger tap targets, tighter vertical rhythm so more lines fit. */
+  .lyrics-container {
+    padding: 10px 4px 40px 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .lyrics-container .lyric-line {
+    font-size: 16px;
+    line-height: 1.5;
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+  .lyrics-container .lyric-line.active {
+    font-size: 20px;
+    padding: 12px 14px;
+  }
+
+  /* Edit-lyrics sheet: never taller than the phone. */
+  #editLyricsModal .modal-content {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    padding: 16px 14px !important;
+  }
+  #editLyricsTextarea { height: 44vh !important; }
+
+  /* Dialogs become bottom sheets on a phone: anchored to the bottom edge,
+     full width, scrollable, and clear of the player bar. */
+  .modal {
+    align-items: flex-end;
+    padding: 10px 10px 10px 10px;
+  }
+  .modal .modal-content {
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: 80dvh;
+    border-radius: 20px 20px 12px 12px;
+    padding: 18px 16px 22px 16px;
+  }
+  .modal .modal-content input,
+  .modal .modal-content select,
+  .modal .modal-content textarea {
+    font-size: 16px; /* stops Android from zooming the page on focus */
+  }
+}
+
+/* YouTube Audio Downloader Modal */
+.yt-download-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 16px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.yt-option-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.yt-option-box:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.yt-option-box.active {
+  background: rgba(255, 0, 51, 0.08);
+  border-color: rgba(255, 0, 51, 0.4);
+}
+
+.yt-progress-container {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  height: 10px;
+  width: 100%;
+  overflow: hidden;
+  margin: 12px 0 8px 0;
+}
+
+.yt-progress-fill {
+  background: linear-gradient(90deg, #ff0033, #ff4d4d);
+  height: 100%;
+  width: 0%;
+  border-radius: 10px;
+  transition: width 0.2s ease;
+}

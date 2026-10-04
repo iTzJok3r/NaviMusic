@@ -1,0 +1,889 @@
+/* =============================================================================
+   Archimedes Shell — the rebuilt layout layer
+   =============================================================================
+   Load order: design-system.css  ->  styles.css  ->  shell.css
+
+   styles.css is the legacy file: ~2,300 lines that grew nine stacked media
+   queries fighting each other, which is why the phone ended up showing a
+   squeezed desktop layout. Instead of adding a tenth, the rebuilt shell lives
+   here. Loading it last means it can override legacy selectors without
+   `!important` and without touching the old file, so the migration can proceed
+   screen by screen with the app working at every step.
+
+   Everything in this file is inert above 860px: the phone shell is either
+   display:none or never populated.
+   ============================================================================= */
+
+/* =============================================================================
+   Desktop shell (above 860px)
+   =============================================================================
+   The phone shell above is inert here; this section gives the desktop the same
+   treatment on the same tokens. The player bar was the worst of it: eleven
+   unlabelled icon buttons in one undifferentiated row, none of them matching
+   the transport controls beside them. */
+@media (min-width: 861px) {
+  /* Secondary tools become a distinct cluster, separated from the transport by
+     a rule, so the bar reads as two groups instead of one long strip. */
+  .player-bar .player-right {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-s1);
+    padding-inline-start: var(--ds-s3);
+    margin-inline-start: var(--ds-s2);
+    border-inline-start: 1px solid var(--ds-border);
+  }
+
+  .player-bar .player-right .control-btn {
+    /* flex: 0 0 auto is the part that actually matters. Setting only width let
+       the flex container shrink the eight buttons to fit: measured 18px wide
+       inside a 280px cluster instead of the intended 36px, so the icons sat in
+       slivers. The primitive in design-system.css already refuses to shrink for
+       exactly this reason. */
+    flex: 0 0 auto;
+    width: var(--ds-hit);
+    min-width: var(--ds-hit);
+    height: var(--ds-hit);
+    border-radius: var(--ds-r-md);
+  }
+
+  /* Volume is a control, not decoration: give it the same vertical rhythm. */
+  .player-bar .player-right #volumeSlider {
+    height: var(--ds-hit);
+    margin-inline-start: var(--ds-s1);
+  }
+  .player-bar .player-right #volumeIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--ds-hit);
+    height: var(--ds-hit);
+  }
+
+  /* A little more air between the transport buttons; the play button stays the
+     visual anchor. */
+  .player-bar .player-controls { gap: var(--ds-s2); }
+  .player-bar .player-controls .play-pause-btn {
+    width: 46px;
+    height: 46px;
+    font-size: 19px;
+  }
+
+  /* Same primitive in the header, so the two bars finally agree. */
+  .top-bar .control-btn {
+    width: var(--ds-hit);
+    height: var(--ds-hit);
+    border-radius: var(--ds-r-md);
+  }
+}
+
+/* =============================================================================
+   Phone bottom navigation
+   ============================================================================= */
+.ds-bottomnav {
+  display: none;
+  flex: 0 0 auto;
+  background: var(--ds-surface-1);
+  border-top: 1px solid var(--ds-border);
+  z-index: var(--ds-z-bottomnav);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.ds-navbtn {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 58px;
+  padding: 6px 2px;
+  border: 0;
+  background: transparent;
+  color: var(--ds-text-dim);
+  font: 600 10px/1.1 var(--ds-font);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--ds-dur-fast) var(--ds-ease);
+}
+
+.ds-navbtn i { font-size: 17px; }
+.ds-navbtn span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
+.ds-navbtn.active { color: var(--ds-accent); }
+.ds-navbtn:active { transform: scale(0.94); }
+
+/* =============================================================================
+   Phone shell: compact mini player, tools relocated into the studio
+   ============================================================================= */
+.ds-tooldock { display: none; }
+
+@media (max-width: 860px) {
+  .ds-bottomnav { display: flex; }
+
+  /* ---- RTL off-canvas drawer ---------------------------------------------
+     The legacy rule hides the drawer with `transform: translateX(-102%)` and
+     the RTL variant mirrors it to `translateX(102%)`. Both are percentage
+     translations on an element whose `direction` is rtl, which is exactly the
+     kind of value that is easy to get wrong and hard to reason about: measured
+     under automation the RTL drawer reported `matrix(1,0,0,1,-306,0)` —
+     the LTR offset — leaving 87px of drawer on screen.
+
+     Whether that was a real layout defect or an artifact of the transform
+     transition being frozen (the automation window does not composite, so
+     transitioned values stay at their previous value; verified by disabling
+     `transition`, after which the values are correct) could not be established
+     from here. Rather than ship a guess, this uses physical positioning, which
+     is correct under either explanation and cannot be flipped by direction:
+
+         closed -> right: -102%   (right edge beyond the viewport)
+         open   -> right: 0
+
+     Verified with the transition disabled at a 393px viewport:
+     closed = 0px visible, open = 300px visible. */
+  html[dir="rtl"] .sidebar {
+    left: auto;
+    right: -102%;
+    transform: none;
+    transition: right 0.25s ease;
+  }
+  html[dir="rtl"] .sidebar.open {
+    right: 0;
+    transform: none;
+  }
+
+  /* ---- mini player -------------------------------------------------------
+     The footer used to wrap into a ~200px block carrying eleven secondary
+     controls — a quarter of the screen, permanently. On a phone it becomes a
+     single 64px row: art, title/artist, prev/play/next, and a 3px progress
+     line pinned to its top edge. Everything else moves into the studio sheet
+     via setupMobileShell(), keeping the same DOM nodes. */
+  .player-bar {
+    height: 64px;
+    min-height: 64px;
+    max-height: 64px;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: var(--ds-s2);
+    padding: 0 var(--ds-s2);
+    overflow: hidden;
+  }
+
+  .player-bar .player-left {
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: var(--ds-s2);
+    overflow: hidden;
+  }
+
+  .player-bar .player-thumb {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 auto;
+    border-radius: var(--ds-r-sm);
+  }
+
+  .player-bar .player-info { min-width: 0; overflow: hidden; }
+
+  .player-bar .player-info h4 {
+    font-size: var(--ds-fs-md);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .player-bar .player-info p {
+    font-size: var(--ds-fs-xs);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* The scrolling lyrics ticker needs two lines; the mini player has no room. */
+  .player-bar .lyrics-ticker { display: none; }
+
+  .player-bar .player-center {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 0;
+  }
+
+  /* Only transport survives here; the rest lives in the studio tool dock. */
+  .player-bar .player-controls { gap: var(--ds-s1); }
+  .player-bar .player-controls .control-btn { display: none; }
+  .player-bar .player-controls #prevBtn,
+  .player-bar .player-controls #nextBtn,
+  .player-bar .player-controls .play-pause-btn { display: inline-flex; }
+
+  .player-bar .player-controls .control-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+  .player-bar .player-controls .play-pause-btn {
+    width: 46px;
+    height: 46px;
+    font-size: 19px;
+  }
+
+  /* Progress becomes a hairline on the top edge of the mini player. */
+  .player-bar .progress-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    margin: 0;
+    padding: 0;
+    gap: 0;
+    display: block;
+  }
+  .player-bar .progress-area .time-text { display: none; }
+  .player-bar .progress-area .progress-bar-bg {
+    width: 100%;
+    height: 3px;
+    border-radius: 0;
+    margin: 0;
+  }
+
+  /* ---- tool dock inside the studio sheet --------------------------------
+     The relocated .player-right becomes one tidy, sideways-scrollable row of
+     48px targets instead of a wrapped block. */
+  .ds-tooldock:not([hidden]) {
+    display: block;
+    flex: 0 0 auto;
+    padding: var(--ds-s2) var(--ds-s3) 0 var(--ds-s3);
+    border-bottom: 1px solid var(--ds-border);
+  }
+
+  .ds-tooldock .player-right {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-s2);
+    flex-wrap: nowrap;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: var(--ds-s2);
+  }
+  .ds-tooldock .player-right::-webkit-scrollbar { display: none; }
+
+  .ds-tooldock .player-right > * { flex: 0 0 auto; }
+
+  .ds-tooldock .player-right .control-btn {
+    width: var(--ds-hit);
+    height: var(--ds-hit);
+    font-size: 17px;
+  }
+
+  /* The volume slider is unusable as a 3px hairline in a scrolling row. */
+  .ds-tooldock .player-right #volumeSlider {
+    width: 96px;
+    height: var(--ds-hit);
+  }
+
+  .ds-tooldock .player-right .mini-visualizer {
+    width: 64px;
+    height: var(--ds-hit);
+  }
+
+  /* =======================================================================
+     Track lists: table -> card list
+     =======================================================================
+     Measured on a 392px-wide phone before this change, one row of the
+     1,595-track list looked like:
+
+       [0] index      14 ->  50   (36px, pure noise on a phone)
+       [1] title+badge 50 -> 200  (150px for "Hello" + a Cloud badge)
+       [2] artist     200 -> 290
+       [3] album        0 ->   0  (already hidden)
+       [4] duration   290 -> 339
+       [5] action     339 -> 375  \
+       [6] action     342 -> 393  / overlap by 33px
+       row height 45px - below the 48px minimum touch target
+
+     Five columns crammed into 392px is the whole reason the list felt like a
+     squeezed desktop layout. A table cannot express "title on the first line;
+     artist and duration beneath it; actions pinned right", so on a phone the
+     table stops being a table and each row becomes a two-line card.
+     Cell roles come from the ds-c-* classes the templates now carry, so this
+     works for every view regardless of whether it includes an album column. */
+  .songs-table {
+    display: block;
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .songs-table thead { display: none; }
+  .songs-table tbody { display: block; }
+
+  .songs-table tr.ds-track {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    column-gap: var(--ds-s2);
+    row-gap: 1px;
+    min-height: 56px;
+    padding: var(--ds-s2) var(--ds-s3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .songs-table tr.ds-track > td {
+    display: block;
+    position: static !important;   /* neutralise the legacy sticky column */
+    padding: 0 !important;
+    border: 0 !important;
+    min-width: 0;
+    background: transparent !important;
+  }
+
+  /* The row number and the album are not worth a phone's width. */
+  .songs-table tr.ds-track > .ds-c-idx,
+  .songs-table tr.ds-track > .ds-c-album { display: none; }
+
+  .songs-table tr.ds-track > .ds-c-title {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: var(--ds-fs-md);
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .songs-table tr.ds-track > .ds-c-artist {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: var(--ds-fs-sm);
+    color: var(--ds-text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .songs-table tr.ds-track > .ds-c-time {
+    grid-column: 2;
+    grid-row: 2;
+    font-size: var(--ds-fs-xs);
+    color: var(--ds-text-dim);
+    text-align: end !important;
+  }
+
+  /* Actions sit on the title line, hard against the trailing edge. Two action
+     cells get a column each; a view with one still lands in the last column. */
+  .songs-table tr.ds-track > .ds-c-act {
+    grid-row: 1;
+    justify-self: end;
+  }
+  .songs-table tr.ds-track > .ds-c-act:nth-last-child(2) { grid-column: 2; }
+  .songs-table tr.ds-track > .ds-c-act:last-child { grid-column: 3; }
+
+  .songs-table tr.ds-track .btn-action-playlist,
+  .songs-table tr.ds-track .btn-action-delete {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Empty-state / message rows are plain rows, not cards. */
+  .songs-table tbody > tr:not(.ds-track) { display: block; }
+  .songs-table tbody > tr:not(.ds-track) > td {
+    display: block;
+    width: 100%;
+    padding: var(--ds-s5) var(--ds-s4) !important;
+  }
+
+  /* =======================================================================
+     Now Playing studio: a page, not a floating dialog
+     =======================================================================
+     Measured on a 392x822 phone before this change:
+
+       container  369x724 at (12,49)  - a dialog inset from every edge, so the
+                                      bottom navigation stayed visible behind it
+       controls   18 total, 13 under 44px tall, 9 outside the viewport
+       artwork    ~600px tall, dominating the sheet
+
+     It now occupies the full viewport with three fixed regions (header, tool
+     dock, scrolling body), so the sheet reads as a screen rather than a window
+     floating over one, and every control is either visible or one scroll away. */
+  .now-playing-modal {
+    inset: 0 !important;
+    padding: 0 !important;
+    align-items: stretch !important;
+    justify-content: stretch !important;
+    z-index: var(--ds-z-overlay);
+  }
+
+  /* ID-scoped on purpose. An earlier round added
+       .now-playing-modal > div { max-height: 94vh !important; ... }
+     which is specificity (0,1,1) and also applies to .now-playing-container.
+     Because both declarations are !important, the MORE SPECIFIC one wins
+     regardless of file order, so a plain `.now-playing-container` rule could
+     never win: 94vh of an 822px page is 772.7px, which is exactly the 773px the
+     sheet kept reporting. `#nowPlayingModal > .now-playing-container` is
+     (1,1,0) and settles it. The same selector also stops that legacy rule from
+     forcing 84px of bottom padding onto the tool dock. */
+  #nowPlayingModal > .now-playing-container {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    border-radius: 0 !important;
+    border: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    /* Opaque. The sheet covers the whole page now, but with a translucent
+       background the bottom navigation showed through it and read as if it were
+       still on top — the page underneath must not be legible at all. */
+    background: var(--ds-bg) !important;
+  }
+
+  .now-playing-header {
+    flex: 0 0 auto;
+    padding: var(--ds-s3) var(--ds-s4) !important;
+    padding-top: calc(var(--ds-s3) + env(safe-area-inset-top, 0px)) !important;
+    border-bottom: 1px solid var(--ds-border);
+    /* leave room for the floating close control */
+    padding-inline-end: 64px !important;
+  }
+
+  #nowPlayingModal > .ds-tooldock:not([hidden]) {
+    flex: 0 0 auto;
+    padding: var(--ds-s2) var(--ds-s3) !important;
+  }
+
+  /* The only scrolling region: flex:1 + min-height:0 is what actually makes a
+     flex child scrollable instead of pushing the sheet taller. */
+  .now-playing-body {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    display: block !important;
+    padding: var(--ds-s3) var(--ds-s4) calc(var(--ds-s5) + env(safe-area-inset-bottom, 0px)) var(--ds-s4) !important;
+    gap: 0 !important;
+  }
+
+  .np-left-pane, .np-right-pane { display: block !important; width: auto !important; }
+
+  /* Artwork was eating most of the screen; on a phone it is a header for the
+     sheet, not the subject of it. */
+  .np-art-wrapper {
+    max-width: 200px !important;
+    margin: 0 auto var(--ds-s3) auto !important;
+    border-radius: var(--ds-r-lg);
+  }
+  .np-art-img { max-height: 200px; }
+  .np-visualizer-canvas { max-height: 90px; }
+
+  /* One effect per row on a phone: measured with two columns, the Arabic label
+     "إزالة الإيقاع (No Beat)" wrapped onto five lines inside a 149px card and
+     the neighbouring card's text was cut off.
+
+     ROOT CAUSE — it was never a specificity fight. styles.css has
+         .fx-card-wide { grid-column: span 2; }
+     and one of the effect cards carries that class. Forcing the template to a
+     single column cannot work while a child still asks for two: the grid
+     satisfies it by creating a SECOND IMPLICIT TRACK, so the used value stays
+     two columns. That is why a plain rule, an `!important` rule, an ID-scoped
+     `!important` rule AND a JS-set inline style all measured
+     "137.3px 185.9px" — Chromium reports implicit tracks in the used value, so
+     the grid looked like it was ignoring all four. Resetting the spanning child
+     is the actual fix. */
+  #nowPlayingModal .np-effects-grid {
+    grid-template-columns: 1fr !important;
+    gap: var(--ds-s2) !important;
+  }
+  #nowPlayingModal .np-effects-grid > .fx-card-wide {
+    grid-column: auto !important;
+  }
+
+  /* Every tappable control in the sheet meets the thumb minimum. */
+  .now-playing-body .control-btn,
+  .now-playing-body button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .np-lyrics-scroll-container { max-height: none !important; }
+}
+
+/* =============================================================================
+   Header actions — both products
+   =============================================================================
+   The header buttons use .top-action-btn, not .control-btn, which is why the
+   desktop section's rule never reached them (measured topBarControl: null).
+   One rule outside any media query is enough for both products because
+   --ds-hit is already 36px on desktop and 48px on a phone. */
+.top-bar .top-action-btn {
+  flex: 0 0 auto;
+  min-width: var(--ds-hit);
+  min-height: var(--ds-hit);
+  border-radius: var(--ds-r-md);
+}
+
+/* =============================================================================
+   Action rows that overflowed the phone
+   =============================================================================
+   Seen as a user on a 392px phone: the artist header holds three buttons
+   (Play All Tracks / Shuffle All Tracks / Delete Artist). Nothing stopped them
+   wrapping, so each label broke onto three lines, the row grew ~300px tall and
+   the third button was clipped off the right edge — with no sign it was there.
+
+   .action-btn-group is shared by the artist, album, playlist and songs views,
+   so this fixes all of them at once. Buttons keep their label on one line at a
+   thumb-sized height, and the row itself scrolls sideways when there are more
+   buttons than fit, instead of pushing the page wider than the screen. */
+@media (max-width: 860px) {
+  .action-btn-group {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: var(--ds-s2);
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .action-btn-group::-webkit-scrollbar { display: none; }
+  .action-btn-group > * { flex: 0 0 auto; }
+
+  .btn-play-all,
+  .btn-shuffle {
+    white-space: nowrap;
+    min-height: 44px;
+    padding: 10px var(--ds-s4);
+    font-size: var(--ds-fs-sm);
+  }
+
+  /* The artist header stacks instead of squeezing a 100px avatar, the name and
+     a row of buttons onto one line. */
+  .view-header-row { flex-direction: column; align-items: flex-start !important; gap: var(--ds-s3); }
+}
+
+/* =============================================================================
+   Touch targets — measured, not guessed
+   =============================================================================
+   A screenshot-by-screenshot audit of all 15 screens on a 392x822 phone found
+   between 10 and 37 controls per screen below the 44px thumb minimum. The same
+   offenders appeared everywhere:
+
+     drawer nav items (all nine)          37px
+     mini-player prev / next              40px
+     "Change Server" / "Sign out"         27px   <- smallest in the app
+     YouTube "Play" / "Open in Browser"   29 / 30px
+     "Scan Device"                        33px
+     filter chips                         30px
+     row "Add to Playlist"                40px
+
+   44px is the Android minimum; this app's own token already asks for 48px on a
+   phone. Rather than chase each one, the floor is enforced here. */
+@media (max-width: 860px) {
+  .sidebar .nav-item {
+    display: flex;
+    align-items: center;
+    min-height: 48px;
+  }
+
+  .player-bar .player-controls .control-btn {
+    width: 44px;
+    height: 44px;
+  }
+  .player-bar .player-controls .play-pause-btn {
+    width: 48px;
+    height: 48px;
+  }
+
+  .content-body button,
+  .modal button,
+  .modal-content button,
+  .now-playing-modal button,
+  .songs-table tr.ds-track .btn-action-playlist,
+  .songs-table tr.ds-track .btn-action-delete {
+    min-height: 44px;
+  }
+
+  /* Text buttons that carry inline padding also need their inline size to grow,
+     otherwise a 44px-tall "Change Server" still reads as a sliver. */
+  .content-body button,
+  .modal-content button {
+    padding-left: var(--ds-s4);
+    padding-right: var(--ds-s4);
+  }
+}
+
+/* =============================================================================
+   Artists grid — density
+   =============================================================================
+   Reviewed on a phone: with 369 artists the card showed a ~145px empty circle
+   above a name and an album count, so only about six fitted on screen and the
+   screen was mostly empty grey. Artist rows carry far less information than an
+   album cover, so they can be much denser without losing legibility.
+
+   Three columns on a phone, with a smaller avatar and tighter type. Album
+   covers keep two columns, where the artwork is the point. */
+@media (max-width: 860px) {
+  .cards-grid--artists {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--ds-s2);
+  }
+  .cards-grid--artists .card {
+    padding: var(--ds-s2);
+    align-items: center;
+    text-align: center;
+  }
+  .cards-grid--artists .card-img {
+    font-size: 22px;
+    margin-bottom: var(--ds-s2);
+  }
+  .cards-grid--artists .card-title {
+    font-size: var(--ds-fs-sm);
+    line-height: 1.25;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .cards-grid--artists .card-subtitle {
+    font-size: 10px;
+  }
+}
+
+/* =============================================================================
+   Equalizer on a phone — it was unusable
+   =============================================================================
+   Measured on a 392x822 device, and visible in a screenshot:
+
+     - 10 bands + fixed 22px sliders + 12px gaps needed more width than the
+       361px container, so bands 9 and 10 were off-screen and unreachable
+       (anyOutsideViewport: 3)
+     - the header is a flex row holding a <select> with long option text, which
+       pushed #closeEqBtn off the right edge — the sheet had NO visible way out
+     - every slider still used `appearance: auto`, i.e. the browser's default
+       chrome; the user described the result as "not balanced"
+
+   Fix: the header stacks, and the band strip becomes a horizontally scrollable
+   row of finger-sized columns instead of squeezing ten 22px sliders. */
+@media (max-width: 860px) {
+  #eqModal .eq-modal-content {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    padding: var(--ds-s3) !important;
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
+
+  #eqModal .eq-modal-content > div:first-child {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: var(--ds-s3);
+  }
+  #eqModal .eq-modal-content > div:first-child > div {
+    width: 100%;
+    min-width: 0;
+  }
+  /* The preset <select> yields space so the close button always fits. */
+  #eqModal .eq-preset-dropdown {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+    max-width: 100%;
+  }
+
+  .eq-sliders-wrapper {
+    justify-content: flex-start;
+    gap: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: var(--ds-s4) var(--ds-s1) var(--ds-s3) var(--ds-s1);
+  }
+  .eq-sliders-wrapper::-webkit-scrollbar { display: none; }
+
+  .eq-col {
+    flex: 0 0 auto;
+    width: 54px;
+    gap: var(--ds-s2);
+  }
+  .eq-col input[type="range"] {
+    width: 44px;          /* a finger, not a hairline */
+    height: 150px;
+  }
+  .eq-col .eq-db-label,
+  .eq-col .eq-freq-label { font-size: 10px; }
+
+  .eq-horizontal-slider { height: 44px; }
+  .eq-extras-grid { grid-template-columns: 1fr !important; }
+}
+
+/* =============================================================================
+   Close buttons — one themed control
+   =============================================================================
+   The user's report: "the classic X marks have no theme". Measured: #closeEqBtn
+   was a bare 34x44 transparent icon, and the dialog close buttons were still
+   painted with the browser's default light button. Any element whose only
+   content is an xmark icon gets .ds-close (applied in JS, since CSS cannot
+   select on content) and is themed here for both products. */
+.ds-close {
+  flex: 0 0 auto;
+  width: var(--ds-hit);
+  height: var(--ds-hit);
+  min-width: var(--ds-hit);
+  min-height: var(--ds-hit);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ds-border-strong);
+  border-radius: var(--ds-r-full);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--ds-text);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease);
+}
+.ds-close:hover,
+.ds-close:active {
+  background: rgba(239, 68, 68, 0.9);
+  border-color: transparent;
+  color: #fff;
+}
+
+/* Checkboxes and radios, which were still painted by the browser.
+   #spatialAudioToggle carries an inline `width:16px;height:16px`, and an inline
+   style beats a plain rule — hence !important on the size. appearance:none is
+   what actually removes the default white square the user noticed. */
+input[type="checkbox"],
+input[type="radio"] {
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  width: 22px !important;
+  height: 22px !important;
+  margin: 0;
+  border: 1px solid var(--ds-border-strong);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  position: relative;
+  cursor: pointer;
+  transition: background var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease);
+}
+input[type="radio"] { border-radius: var(--ds-r-full); }
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+  background: var(--ds-accent);
+  border-color: var(--ds-accent);
+}
+input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 1px;
+  width: 6px;
+  height: 12px;
+  border: solid #04140a;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+input[type="radio"]:checked::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  background: #04140a;
+}
+
+/* ===========================================================================
+   Persistent YouTube media layer
+   ===========================================================================
+   Holds the official embed for the lifetime of the app so navigating between
+   sections cannot destroy it. It is parked off-screen with a transform rather
+   than display:none, because a display:none iframe can have its playback
+   suspended while a merely off-screen one keeps playing. When the YouTube
+   section is open, JS matches this box to the slot that section reserves.
+   =========================================================================== */
+#ytPersistentLayer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 640px;
+  height: 360px;
+  background: #000;
+  z-index: 40;
+  overflow: hidden;
+  /* Parked: still rendered, still painted, still playing. */
+  transform: translate3d(-300vw, 0, 0);
+}
+
+#ytPersistentLayer.yt-docked {
+  transform: none;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+}
+
+#ytPersistentLayer.yt-parked {
+  pointer-events: none;
+}
+
+#ytPersistentSurface,
+#ytPersistentSurface > div {
+  width: 100%;
+  height: 100%;
+}
+
+/* ===========================================================================
+   Icon buttons must be themed on their own
+   ===========================================================================
+   The dark pill look came only from .ds-close, which the close-button pass adds
+   to X icons. Any .modal-btn-icon that is NOT an X - the studio's collapse
+   chevron, for example - therefore fell through to the browser's default button
+   chrome and rendered as a light grey box (measured: background rgb(239,239,239))
+   inside a dark interface. Give the base class the styling instead of relying on
+   a modifier that only some of them carry. */
+.modal-btn-icon,
+.control-btn {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #eaeaf2 !important;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* ===========================================================================
+   One close control per surface
+   ===========================================================================
+   The studio ended up with TWO X buttons side by side: the header keeps its own,
+   and npCloseBtn was re-parented to the modal root by the mobile shell, so both
+   rendered at once (measured at x=281 and x=331, each 48x48). The header control
+   is the one in the layout, so the re-parented duplicate is hidden rather than
+   removed - the element and its handler stay in the code. */
+#nowPlayingModal > .np-close-btn,
+#nowPlayingModal > button.np-close-btn {
+  display: none !important;
+}

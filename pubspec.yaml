@@ -1,0 +1,47 @@
+name: navidrome_client
+description: "A production-grade, secure multiplatform Navidrome Subsonic client for Mobile and Desktop."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Networking & HTTP
+  dio: ^5.4.3+1
+  http: ^1.2.1
+  connectivity_plus: ^6.0.3
+  
+  # Security & Cryptography
+  crypto: ^3.0.3
+  encrypt: ^5.0.3
+  flutter_secure_storage: ^9.0.0
+  
+  # State Management & DI
+  flutter_riverpod: ^2.5.1
+  
+  # Local Storage & Preferences
+  shared_preferences: ^2.2.3
+  path_provider: ^2.1.2
+  path: ^1.9.0
+  
+  # Audio Playback
+  just_audio: ^0.9.36
+  audio_session: ^0.1.18
+  
+  # UI & Icons
+  cupertino_icons: ^1.0.6
+  cached_network_image: ^3.3.1
+  flutter_spinkit: ^5.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true

@@ -1,0 +1,38 @@
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+*.lock
+
+# Node / Electron
+node_modules/
+desktop/node_modules/
+desktop/dist/
+
+# System & Temp
+.DS_Store
+Thumbs.db
+*.log
+*.exe
+*.apk
+
+# Android
+.gradle/
+android/.gradle/
+android/app/build/
+android/local.properties
+
+# Local verification scratch (analysis scripts, screenshots)
+.dsh-verify/
+
+# First-run provisioning defaults (never commit credentials)
+defaults.local.json
+provision.local.properties
+
+
+# Runtime logs
+electron-log.txt
+*.local.properties
+

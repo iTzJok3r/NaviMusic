@@ -1,0 +1,43 @@
+{
+  "name": "navidrome-desktop",
+  "version": "1.0.0",
+  "description": "Hardened Native Desktop Client for Navidrome",
+  "author": "iTzJok3r",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win --dir",
+    "dist": "electron-builder --win portable"
+  },
+  "build": {
+    "appId": "com.itzjok3r.archimedes",
+    "productName": "Archimedes Music",
+    "win": {
+      "icon": "icon.ico",
+      "target": [
+        "portable"
+      ]
+    },
+    "portable": {
+      "artifactName": "Archimedes-Music-Portable.exe"
+    },
+    "directories": {
+      "output": "dist"
+    },
+    "asarUnpack": [
+      "yt-audio-downloader.py"
+    ],
+    "electronFuses": {
+      "runAsNode": false,
+      "enableCookieEncryption": true,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "enableEmbeddedAsarIntegrityValidation": true,
+      "onlyLoadAppFromAsar": true
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^26.15.3"
+  }
+}

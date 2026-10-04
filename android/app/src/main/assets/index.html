@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Content Security Policy.
+       'unsafe-inline' is still required for script-src because the UI builds its
+       markup with inline onclick attributes in ~56 places; converting those to
+       delegated listeners is the remaining step before it can be dropped. The
+       restrictions that matter most already hold: no plugins, a YouTube-only
+       frame-src, and no form/base targets.
+
+       script-src now also allows https://www.youtube.com, and ONLY that, because
+       the official IFrame API (https://www.youtube.com/iframe_api) is what turns
+       a silent broken player into reportable error events (100/101/150/153).
+       That is the whole reason the api.youtube host is listed. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.youtube.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' data: https://cdnjs.cloudflare.com https://fonts.gstatic.com; img-src 'self' data: blob: http: https:; media-src 'self' blob: http: https:; connect-src 'self' http: https:; frame-src https://www.youtube.com https://www.youtube-nocookie.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Archimedes Music</title>
+  <!-- Tokens and primitives first: styles.css consumes them. -->
+  <link rel="stylesheet" href="design-system.css">
+  <link rel="stylesheet" href="styles.css">
+  <!-- Shell last: the rebuilt layout layer overrides legacy rules by order. -->
+  <link rel="stylesheet" href="shell.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <!-- Ambient Aurora Dynamic Mesh Background -->
+  <div class="aurora-ambient-bg" id="auroraBg">
+    <div class="aurora-orb orb-1"></div>
+    <div class="aurora-orb orb-2"></div>
+    <div class="aurora-orb orb-3"></div>
+  </div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo-area">
+        <div class="brand-logo-badge">
+          <img src="icon.png" class="brand-logo-img" alt="Archimedes" />
+          <div class="brand-glow-ring"></div>
+        </div>
+        <div class="logo-text">
+          <h1 class="brand-title">Archimedes</h1>
+          <span class="brand-subtitle" id="navSubtitle">Music Streaming</span>
+        </div>
+      </div>
+
+      <div class="status-badge" id="serverStatusBadge" title="Click to change server IP">
+        <div class="status-dot"></div>
+        <div style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+          <strong id="badgeServerIp"></strong>
+        </div>
+        <i class="fa-solid fa-pen-to-square" style="font-size: 11px;"></i>
+      </div>
+
+      <nav class="nav-menu">
+        <div class="nav-item active" data-view="artists" id="navArtists">
+          <i class="fa-solid fa-user-group"></i> <span>Artists</span>
+        </div>
+        <div class="nav-item" data-view="albums" id="navAlbums">
+          <i class="fa-solid fa-compact-disc"></i> <span>Albums</span>
+        </div>
+        <div class="nav-item" data-view="songs" id="navSongs">
+          <i class="fa-solid fa-music"></i> <span>All Tracks</span>
+        </div>
+        <div class="nav-item" data-view="local" id="navLocal">
+          <i class="fa-solid fa-laptop-file"></i> <span>Device Music</span>
+        </div>
+        <div class="nav-item" data-view="playlists" id="navPlaylists">
+          <i class="fa-solid fa-list-ul"></i> <span>Playlists</span>
+        </div>
+        <div class="nav-item" data-view="youtube" id="navYoutube">
+          <i class="fa-brands fa-youtube" style="color: #ff0033;"></i> <span>YouTube</span>
+        </div>
+        <div class="nav-item" data-view="upload" id="navUpload">
+          <i class="fa-solid fa-cloud-arrow-up"></i> <span>Upload Music</span>
+        </div>
+        <div class="nav-item" data-view="settings" id="navSettings">
+          <i class="fa-solid fa-gear"></i> <span>Settings</span>
+        </div>
+
+        <!-- Secondary controls, rendered only on phones where the top bar cannot
+             hold them without pushing buttons off-screen. -->
+        <div class="nav-item mobile-only" id="navMobileEq" onclick="document.getElementById('topEqBtn').click()">
+          <i class="fa-solid fa-sliders"></i> <span>المعادل (EQ)</span>
+        </div>
+        <div class="nav-item mobile-only" id="navMobileViz" onclick="cycleVisualizerMode()">
+          <i class="fa-solid fa-chart-simple"></i> <span>شكل المؤثر البصري</span>
+        </div>
+        <div class="nav-item mobile-only" id="navMobileShortcuts" onclick="toggleShortcutsModal()">
+          <i class="fa-solid fa-keyboard"></i> <span>اختصارات</span>
+        </div>
+        <div class="nav-item mobile-only" id="navMobileFs" onclick="document.getElementById('topFsBtn').click()">
+          <i class="fa-solid fa-expand"></i> <span>ملء الشاشة</span>
+        </div>
+        <div class="nav-item mobile-only" id="navMobileMini" onclick="document.getElementById('topMiniBtn').click()">
+          <i class="fa-solid fa-window-restore"></i> <span>مشغل مصغّر</span>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <header class="top-bar">
+        <button class="top-action-btn mobile-only" id="mobileMenuBtn" title="القائمة / Menu" aria-label="Open menu" onclick="toggleMobileSidebar()">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="search-container">
+          <i class="fa-solid fa-magnifying-glass" style="color: #7b7b95;"></i>
+          <input type="text" id="searchInput" placeholder="Search songs, albums, or artists...">
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <!-- Dual Language Toggle -->
+          <button class="top-action-btn lang-toggle-btn" id="langToggleBtn" title="Switch Language / تبديل اللغة" onclick="toggleAppLanguage()">
+            <i class="fa-solid fa-globe"></i> <span id="langBtnLabel">العربية</span>
+          </button>
+
+          <!-- Visualizer Mode Switcher -->
+          <button class="top-action-btn" id="vizModeBtn" title="Cycle Visualizer: Bars / Wave / Radial / Particles" onclick="cycleVisualizerMode()">
+            <i class="fa-solid fa-chart-simple"></i> <span id="vizModeLabel" class="btn-label">Bars</span>
+          </button>
+
+          <button class="top-action-btn" id="topEqBtn" title="10-Band Graphic Equalizer">
+            <i class="fa-solid fa-sliders"></i> <span class="btn-label">EQ</span>
+          </button>
+
+          <!-- Keyboard Shortcuts Guide -->
+          <button class="top-action-btn" id="shortcutsBtn" title="Keyboard Shortcuts (?)" onclick="toggleShortcutsModal()">
+            <i class="fa-solid fa-keyboard"></i>
+          </button>
+
+          <button class="top-action-btn" id="topMiniBtn" title="Mini-Player Widget (Always on Top)">
+            <i class="fa-solid fa-window-restore"></i>
+          </button>
+          <button class="top-action-btn" id="topFsBtn" title="Toggle Fullscreen (F)">
+            <i class="fa-solid fa-expand"></i>
+          </button>
+          <div style="font-size: 13px; color: #a0a0b5; margin-left: 6px;">
+            <span id="userLoggedInLabel">Logged in as: <strong style="color: #fff;">—</strong></span>
+          </div>
+          <div style="width: 32px; height: 32px; border-radius: 50%; background: #252538; display: flex; align-items: center; justify-content: center; font-size: 14px;">
+            <i class="fa-solid fa-user"></i>
+          </div>
+        </div>
+      </header>
+
+      <div class="content-body" id="contentArea">
+        <div style="text-align: center; padding: 60px 0;">
+          <i class="fa-solid fa-spinner fa-spin" style="font-size: 32px; color: #1db954;"></i>
+          <p style="margin-top: 14px; color: #8c8ca5;">Connecting to Navidrome & Loading Library...</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Mobile navigation drawer backdrop / خلفية القائمة الجانبية للجوال -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeMobileSidebar()"></div>
+
+  <!-- Bottom Player Bar -->
+  <footer class="player-bar">
+    <div class="player-left" onclick="toggleNowPlayingModal()" style="cursor: pointer;" title="Open Studio (Visualizer & Lyrics & Effects) / استوديو المؤثرات">
+      <img id="playerCover" class="player-thumb" src="" style="display: none;" />
+      <div id="playerCoverPlaceholder" class="player-thumb">
+        <i class="fa-solid fa-music"></i>
+      </div>
+      <div class="player-info">
+        <h4 id="playerSongTitle" style="cursor: pointer;">Select a track to play</h4>
+        <p id="playerArtistName" style="cursor: pointer;">Navidrome Server</p>
+        <div class="lyrics-ticker" id="playerLyricsTicker" title="Click to view full lyrics">
+          <i class="fa-solid fa-microphone-lines ticker-icon"></i>
+          <span id="tickerText">Lyrics auto-detect enabled</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="player-center">
+      <div class="player-controls">
+        <button class="control-btn" id="shuffleToggleBtn" title="Toggle Shuffle"><i class="fa-solid fa-shuffle"></i></button>
+        <button class="control-btn" id="prevBtn" title="Previous"><i class="fa-solid fa-backward-step"></i></button>
+        <button class="control-btn play-pause-btn" id="playPauseBtn" title="Play/Pause"><i class="fa-solid fa-play"></i></button>
+        <button class="control-btn" id="nextBtn" title="Next"><i class="fa-solid fa-forward-step"></i></button>
+        <button class="control-btn" id="repeatToggleBtn" title="Toggle Repeat"><i class="fa-solid fa-repeat"></i></button>
+      </div>
+      <div class="progress-area">
+        <span class="time-text" id="currentTime">0:00</span>
+        <div class="progress-bar-bg" id="progressBar">
+          <div class="progress-bar-fill" id="progressFill"></div>
+        </div>
+        <span class="time-text" id="totalDuration">0:00</span>
+      </div>
+    </div>
+
+    <div class="player-right">
+      <!-- Mini Real-time Spectrum Visualizer -->
+      <canvas id="miniVisualizerCanvas" width="80" height="26" title="Live Audio Spectrum Visualizer" class="mini-visualizer" onclick="toggleNowPlayingModal()"></canvas>
+
+      <!-- Remove Beat (إزالة الإيقاع) Toggle -->
+      <button class="control-btn" id="noBeatBtn" title="إزالة الإيقاع / Remove Beat (Vocal Focus)" onclick="toggleNoBeatMode()">
+        <i class="fa-solid fa-drum"></i>
+      </button>
+
+      <!-- Playing Queue Toggle -->
+      <button class="control-btn" id="queueBtn" title="Playing Queue (Q) / قائمة التشغيل" onclick="toggleQueueModal()">
+        <i class="fa-solid fa-list-check"></i>
+      </button>
+
+      <!-- Equalizer Toggle -->
+      <button class="control-btn" id="eqToggleBtn" title="Studio 10-Band Equalizer (E)">
+        <i class="fa-solid fa-sliders"></i>
+      </button>
+
+      <!-- Lyrics Toggle -->
+      <button class="control-btn" id="lyricsToggleBtn" title="Synchronized Lyrics (L)">
+        <i class="fa-solid fa-microphone-lines"></i>
+      </button>
+
+      <!-- Floating on-screen lyrics overlay / كلمات طائرة على الشاشة -->
+      <button class="control-btn" id="floatLyricsBtn" title="كلمات طائرة على الشاشة (اسحبها لأي مكان) / Floating lyrics">
+        <i class="fa-solid fa-align-center"></i>
+      </button>
+
+      <!-- Mini-Player Toggle -->
+      <button class="control-btn" id="playerMiniBtn" title="Mini-Player Widget (PiP)">
+        <i class="fa-solid fa-window-restore"></i>
+      </button>
+
+      <!-- Fullscreen Toggle -->
+      <button class="control-btn" id="fullscreenBtn" title="Fullscreen Mode (F)">
+        <i class="fa-solid fa-expand"></i>
+      </button>
+
+      <!-- Sleep Timer Toggle -->
+      <button class="control-btn" id="sleepTimerBtn" title="Sleep Timer / مؤقت النوم" onclick="toggleSleepTimerModal()">
+        <i class="fa-solid fa-moon"></i>
+      </button>
+
+
+      <!-- Volume -->
+      <i class="fa-solid fa-volume-high" id="volumeIcon" style="color: #7b7b95; font-size: 14px; cursor: pointer;"></i>
+      <input type="range" id="volumeSlider" min="0" max="1" step="0.02" value="0.9" style="accent-color: #1db954; width: 85px; cursor: pointer;">
+    </div>
+  </footer>
+
+  <!-- =====================================================================
+       Phone shell.
+
+       The desktop shell stacks three regions (sidebar + content + a footer
+       carrying every control). On a phone that footer grew to ~200px — a
+       quarter of the screen — and there was no bottom navigation at all, so
+       the only way to switch views was a drawer. This adds the two pieces a
+       phone layout actually needs:
+
+         .ds-bottomnav   persistent view switching, thumb-reachable
+         #studioToolDock mount point: on a phone the footer's secondary
+                         controls are MOVED here (same DOM nodes, so every id
+                         and listener survives) instead of being duplicated.
+
+       Both are inert on desktop: the nav is display:none above 860px and the
+       dock stays empty because nothing is re-parented into it.
+       ===================================================================== -->
+  <nav class="ds-bottomnav" id="dsBottomNav" aria-label="Primary">
+    <button class="ds-navbtn" data-view="artists" type="button">
+      <i class="fa-solid fa-user-group" aria-hidden="true"></i><span>الفنانون</span>
+    </button>
+    <button class="ds-navbtn" data-view="albums" type="button">
+      <i class="fa-solid fa-compact-disc" aria-hidden="true"></i><span>الألبومات</span>
+    </button>
+    <button class="ds-navbtn" data-view="songs" type="button">
+      <i class="fa-solid fa-music" aria-hidden="true"></i><span>الأغاني</span>
+    </button>
+    <button class="ds-navbtn" data-view="playlists" type="button">
+      <i class="fa-solid fa-list-ul" aria-hidden="true"></i><span>القوائم</span>
+    </button>
+    <button class="ds-navbtn ds-navbtn--more" id="dsNavMore" type="button">
+      <i class="fa-solid fa-bars" aria-hidden="true"></i><span>المزيد</span>
+    </button>
+  </nav>
+
+  <!-- Modal for Editing Server IP -->
+  <div class="modal-overlay" id="ipModal">
+    <div class="modal-content">
+      <h3 style="margin-bottom: 12px; font-size: 18px;">Change Navidrome Server URL</h3>
+      <p style="font-size: 13px; color: #8c8ca5; margin-bottom: 18px;">
+        Local-Only Hardened Desktop Mode: Only local network addresses (192.168.x.x, 10.x.x.x, 172.16.x.x, localhost) are permitted.
+      </p>
+      <input type="text" id="modalIpInput" value="" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: #12121a; color: #fff; font-size: 14px; margin-bottom: 20px;" />
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button id="cancelModalBtn" style="padding: 10px 18px; border-radius: 8px; border: none; background: #252538; color: #fff; cursor: pointer;">Cancel</button>
+        <button id="saveModalBtn" style="padding: 10px 18px; border-radius: 8px; border: none; background: #1db954; color: #000; font-weight: 600; cursor: pointer;">Save & Reconnect</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Synchronized Lyrics (Apple Music Style) -->
+  <div class="modal-overlay" id="lyricsModal">
+    <div class="lyrics-backdrop" id="lyricsBackdrop"></div>
+    <div class="modal-content lyrics-modal-content">
+      <div class="lyrics-modal-header">
+        <!-- Row 1: identity + the one control that must NEVER scroll out of
+             reach. On a phone the old single-row header pushed this ✕ past
+             the right edge, which made the whole screen a dead end. -->
+        <div class="lyrics-head-main">
+          <div class="lyrics-header-thumb" id="lyricsHeaderThumb">
+            <i class="fa-solid fa-microphone-lines"></i>
+          </div>
+          <div class="lyrics-head-meta">
+            <h3 id="lyricsTitle">Lyrics</h3>
+            <p id="lyricsArtist">Select a track to see lyrics</p>
+          </div>
+          <button id="closeLyricsBtn" class="lyrics-close-btn" aria-label="Close lyrics" title="إغلاق / Close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <!-- Row 2: badges + secondary tools. Scrolls sideways when narrow,
+             wrapping on wide screens. -->
+        <div class="lyrics-head-actions">
+          <span class="lyrics-source-tag" id="lyricsSourceBadge" title="Lyrics Origin">
+            <i class="fa-solid fa-bolt"></i> Auto-Detecting...
+          </span>
+          <span class="lyrics-saved-badge" id="lyricsSavedBadge" title="Auto-saved in local persistent storage">
+            <i class="fa-solid fa-floppy-disk"></i> Auto-Saved
+          </span>
+          <button id="editLyricsBtn" class="control-btn" title="Add / Edit / Paste Custom Lyrics"><i class="fa-solid fa-pen-to-square"></i></button>
+          <button id="exportLrcBtn" class="control-btn" title="Save / Export .LRC File"><i class="fa-solid fa-file-arrow-down"></i></button>
+          <button id="subtitlePickerBtn" class="control-btn" title="Use your own .srt / .lrc lyrics file — استخدم ملف كلمات موقّت خاص بك (SRT)"><i class="fa-solid fa-closed-captioning"></i></button>
+          <button id="refreshLyricsBtn" class="control-btn" title="Re-Search Lyrics from Internet"><i class="fa-solid fa-rotate-right"></i></button>
+          <button id="lyricsFullscreenBtn" class="control-btn" title="Toggle Fullscreen Lyrics"><i class="fa-solid fa-expand"></i></button>
+        </div>
+      </div>
+
+      <!-- Real-time Audio Visualizer inside Lyrics -->
+      <canvas id="lyricsVisualizerCanvas" width="600" height="40" class="lyrics-visualizer-canvas"></canvas>
+
+      <div id="lyricsContainer" class="lyrics-container">
+        <div style="text-align: center; color: #8c8ca5; padding: 60px 0;">
+          <i class="fa-solid fa-music" style="font-size: 32px; margin-bottom: 12px; display: block; opacity: 0.5;"></i>
+          Play a song to view lyrics
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Editing / Pasting Custom Lyrics -->
+  <div class="modal-overlay" id="editLyricsModal">
+    <div class="modal-content" style="width: 600px; max-width: 90vw;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="font-size: 17px; font-weight: 700;"><i class="fa-solid fa-pen-to-square" style="color: #1db954; margin-right: 8px;"></i>Edit / Paste Lyrics</h3>
+        <button id="closeEditLyricsBtn" class="control-btn" style="font-size: 18px;"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p style="font-size: 13px; color: #8c8ca5; margin-bottom: 12px;">
+        Paste plain text lyrics or synced <code style="color: #1db954;">[00:15.20]</code> LRC lines. Plain text lyrics will be automatically auto-synchronized to the song duration!
+      </p>
+      <textarea id="editLyricsTextarea" placeholder="Paste song lyrics here...&#10;Line 1...&#10;Line 2..." style="width: 100%; height: 260px; padding: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); background: #12121a; color: #fff; font-size: 14px; line-height: 1.6; resize: vertical; outline: none; font-family: inherit;"></textarea>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+        <button id="cancelEditLyricsBtn" style="padding: 10px 18px; border-radius: 8px; border: none; background: #252538; color: #fff; cursor: pointer;">Cancel</button>
+        <button id="saveCustomLyricsBtn" style="padding: 10px 20px; border-radius: 8px; border: none; background: #1db954; color: #000; font-weight: 700; cursor: pointer;"><i class="fa-solid fa-check"></i> Save & Auto-Sync</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Studio 10-Band Graphic Equalizer Modal -->
+  <div class="modal-overlay" id="eqModal">
+    <div class="modal-content eq-modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(29, 185, 84, 0.15); display: flex; align-items: center; justify-content: center; color: #1db954;">
+            <i class="fa-solid fa-sliders" style="font-size: 18px;"></i>
+          </div>
+          <div>
+            <h3 style="font-size: 16px; font-weight: 700;">Studio 10-Band Equalizer</h3>
+            <p style="font-size: 12px; color: #8c8ca5;">Web Audio DSP & Sound Enhancements</p>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <select id="eqPresetSelect" class="eq-preset-dropdown">
+            <option value="flat">Preset: Flat (قياسي)</option>
+            <option value="bassBoost">Preset: Mega Bass Boost (تعزيز البيز)</option>
+            <option value="tarab">Preset: 🎻 Tarab & Arabic Acoustic (طرب عربي)</option>
+            <option value="spatial8d">Preset: 🌌 8D Spatial Audio Orbit (محيطي ثلاثي الأبعاد)</option>
+            <option value="anime">Preset: ⚡ Anime & Spacetoon OST (أنمي وسبيستون)</option>
+            <option value="vocal">Preset: 🎙 Vocal Clarity (نقاء الأصوات)</option>
+            <option value="bassTreble">Preset: Bass & Treble (بيز وتريبل)</option>
+            <option value="rock">Preset: Rock (روك)</option>
+            <option value="pop">Preset: Pop (بوب)</option>
+            <option value="acoustic">Preset: Acoustic (صوت طبيعي)</option>
+            <option value="classical">Preset: Classical (كلاسيكي)</option>
+            <option value="electronic">Preset: Electronic / EDM (إلكتروني)</option>
+          </select>
+          <button id="closeEqBtn" class="control-btn" style="font-size: 18px; width: 34px; height: 34px;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+
+      <!-- 10 Sliders Container -->
+      <div class="eq-sliders-wrapper" id="eqSlidersContainer">
+        <!-- Rendered dynamically via JS for 32Hz, 64Hz, 125Hz, 250Hz, 500Hz, 1kHz, 2kHz, 4kHz, 8kHz, 16kHz -->
+      </div>
+
+      <!-- Extra Sound Enhancers -->
+      <div class="eq-extras-grid">
+        <div class="eq-extra-card">
+          <div class="extra-label">
+            <span><i class="fa-solid fa-drum" style="color: #1db954; margin-right: 6px;"></i>Bass Boost</span>
+            <span id="bassBoostValText" style="color: #1db954; font-weight: bold;">+0 dB</span>
+          </div>
+          <input type="range" id="bassBoostSlider" min="0" max="12" step="1" value="0" class="eq-horizontal-slider">
+        </div>
+
+        <div class="eq-extra-card">
+          <div class="extra-label">
+            <span><i class="fa-solid fa-headphones" style="color: #60a5fa; margin-right: 6px;"></i>3D Spatial Audio</span>
+            <input type="checkbox" id="spatialAudioToggle" style="accent-color: #1db954; cursor: pointer; width: 16px; height: 16px;">
+          </div>
+          <p style="font-size: 11px; color: #8c8ca5; margin-top: 6px;">Stereophonic acoustic widening algorithm</p>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.06);">
+        <button id="resetEqBtn" class="eq-action-btn secondary"><i class="fa-solid fa-rotate-left"></i> Reset to Flat</button>
+        <span style="font-size: 12px; color: #1db954;"><i class="fa-solid fa-check"></i> Applied in Real-Time</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini Player Desktop Floating Overlay Widget -->
+  <div class="mini-player-overlay" id="miniPlayerOverlay">
+    <div class="mini-player-header">
+      <div class="mini-app-title"><i class="fa-solid fa-music" style="color: #1db954;"></i> Navidrome Mini</div>
+      <button id="exitMiniBtn" class="mini-icon-btn" title="Restore Normal Window"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></button>
+    </div>
+    <div class="mini-player-body">
+      <img id="miniCover" class="mini-thumb" src="" style="display: none;" />
+      <div id="miniCoverPlaceholder" class="mini-thumb"><i class="fa-solid fa-music"></i></div>
+      <div class="mini-track-meta">
+        <h4 id="miniSongTitle">Select track</h4>
+        <p id="miniArtistName">Navidrome</p>
+        <div id="miniLyricsLine" class="mini-lyric-live">...</div>
+      </div>
+    </div>
+    <!-- Visualizer inside Mini Player -->
+    <canvas id="miniModeVisualizerCanvas" width="350" height="24" class="mini-canvas-wave"></canvas>
+    <div class="mini-controls-bar">
+      <button class="mini-ctrl-btn" id="miniPrevBtn"><i class="fa-solid fa-backward-step"></i></button>
+      <button class="mini-ctrl-btn play-btn" id="miniPlayPauseBtn"><i class="fa-solid fa-play"></i></button>
+      <button class="mini-ctrl-btn" id="miniNextBtn"><i class="fa-solid fa-forward-step"></i></button>
+    </div>
+  </div>
+
+  <!-- Modal for Keyboard Shortcuts Help -->
+  <div class="modal-overlay" id="shortcutsModal">
+    <div class="modal-content shortcuts-modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(29, 185, 84, 0.15); display: flex; align-items: center; justify-content: center; color: #1db954; font-size: 18px;">
+            <i class="fa-solid fa-keyboard"></i>
+          </div>
+          <div>
+            <h3 style="font-size: 17px; font-weight: 700;" id="shortcutsTitle">Keyboard Shortcuts</h3>
+            <p style="font-size: 12px; color: #8c8ca5;" id="shortcutsSubtitle">Pro Navigation & Controls</p>
+          </div>
+        </div>
+        <button id="closeShortcutsBtn" class="control-btn" onclick="toggleShortcutsModal()" style="font-size: 18px; width: 34px; height: 34px;"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="shortcuts-grid">
+        <div class="shortcut-item">
+          <div class="shortcut-keys"><kbd>Space</kbd></div>
+          <span class="shortcut-desc" id="scPlayPause">Play / Pause</span>
+        </div>
+        <div class="shortcut-item">
+          <div class="shortcut-keys"><kbd>←</kbd> <kbd>→</kbd></div>
+          <span class="shortcut-desc" id="scSeek">Seek backward / forward 5s</span>
+        </div>
+        <div class="shortcut-item">
+          <div class="shortcut-keys"><kbd>↑</kbd> <kbd>↓</kbd></div>
+          <span class="shortcut-desc" id="scVolume">Volume Up / Down</span>
+        </div>
+        <div class="shortcut-item">
+          <div class="shortcut-keys"><kbd>M</kbd></div>
+          <span class="shortcut-desc" id="scMute">Mute / Unmute</span>
+        </div>
+        <div class="shortcut-item">
+          <div class="shortcut-keys"><kbd>L</kbd></div>
+          <span class="shortcut-desc" id="scLyrics">Toggle Synced Lyrics</span>
+        </div>
+        <div class="shortcut-item">
+          <div class="shortcut-keys"><kbd>E</kbd></div>
+          <span class="shortcut-desc" id="scEq">Studio Equalizer</span>
+        </div>
+        <div class="shortcut-item">
+          <div class="shortcut-keys"><kbd>V</kbd></div>
+          <span class="shortcut-desc" id="scViz">Switch Visualizer Mode</span>
+        </div>
+        <div class="shortcut-item">
+          <div class="shortcut-keys"><kbd>F</kbd></div>
+          <span class="shortcut-desc" id="scFs">Toggle Fullscreen</span>
+        </div>
+        <div class="shortcut-item">
+          <div class="shortcut-keys"><kbd>S</kbd></div>
+          <span class="shortcut-desc" id="scShuffle">Toggle Shuffle</span>
+        </div>
+        <div class="shortcut-item">
+          <div class="shortcut-keys"><kbd>R</kbd></div>
+          <span class="shortcut-desc" id="scRepeat">Toggle Repeat</span>
+        </div>
+        <div class="shortcut-item">
+          <div class="shortcut-keys"><kbd>?</kbd></div>
+          <span class="shortcut-desc" id="scHelp">Shortcuts Guide</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Now Playing Experience Modal (Spectrum Visualizer + Synced Lyrics + Sound Effects) -->
+  <div class="now-playing-modal" id="nowPlayingModal" style="display: none;">
+    <div class="now-playing-backdrop" id="nowPlayingBackdrop"></div>
+    <div class="now-playing-container">
+      <div class="now-playing-header">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <button class="modal-btn-icon" onclick="toggleNowPlayingModal()" title="Close / إغلاق">
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <span style="font-size: 13px; font-weight: 600; text-transform: uppercase; color: #1db954; letter-spacing: 1px;">
+            <i class="fa-solid fa-sliders"></i> <span id="npHeaderBadge">Now Playing Studio</span>
+          </span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button class="top-action-btn" onclick="cycleVisualizerMode()" title="Change Visualizer">
+            <i class="fa-solid fa-chart-simple"></i> <span id="npVizModeLabel">Bars</span>
+          </button>
+          <button class="modal-btn-icon" onclick="toggleNowPlayingModal()">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Phone only: the footer's secondary controls are re-parented in here so
+           a phone keeps every control while the footer stays a slim mini player.
+           Empty on desktop by design. -->
+      <div class="ds-tooldock" id="studioToolDock" hidden></div>
+
+      <div class="now-playing-body">
+        <!-- Left Column: Visualizer & Artwork & Pro Effects -->
+        <div class="np-left-pane">
+          <div class="np-art-wrapper">
+            <img id="npArtwork" src="" class="np-art-img" style="display: none;" />
+            <div id="npArtworkPlaceholder" class="np-art-img np-placeholder">
+              <i class="fa-solid fa-music"></i>
+            </div>
+            <!-- Large Spectrum Visualizer Canvas layered over/below artwork -->
+            <canvas id="nowPlayingVisualizerCanvas" width="460" height="160" class="np-visualizer-canvas"></canvas>
+          </div>
+
+          <div class="np-meta">
+            <div class="np-title" id="npSongTitle">Select a track</div>
+            <div class="np-artist" id="npArtistName">Navidrome Server</div>
+          </div>
+
+          <!-- Sound Effects Panel (لوحة المؤثرات الصوتية) -->
+          <div class="np-effects-panel">
+            <div class="np-effects-header">
+              <i class="fa-solid fa-wand-magic-sparkles" style="color: #06b6d4;"></i>
+              <span id="npEffectsTitle">المؤثرات الصوتية الاحترافية (Pro Audio FX)</span>
+            </div>
+            
+            <div class="np-effects-grid">
+              <!-- Effect 1: No Beat / إزالة الإيقاع -->
+              <div class="fx-card" id="fxCardNoBeat" onclick="toggleNoBeatMode()">
+                <div class="fx-icon"><i class="fa-solid fa-drum"></i></div>
+                <div class="fx-info">
+                  <div class="fx-name" id="fxNoBeatTitle">إزالة الإيقاع (No Beat)</div>
+                  <div class="fx-desc" id="fxNoBeatDesc">تقليل الطبول والباس مع الحفاظ على الغناء وبنفس مستوى الصوت</div>
+                </div>
+                <div class="fx-level-badge" id="fxNoBeatBadge">OFF</div>
+                <div class="fx-switch" id="fxNoBeatSwitch" style="display: none;"><i class="fa-solid fa-toggle-off"></i></div>
+              </div>
+
+              <!-- Effect 2: 8D Spatial Audio -->
+              <div class="fx-card" id="fxCard8D" onclick="toggle8dFromCard()">
+                <div class="fx-icon"><i class="fa-solid fa-arrows-spin"></i></div>
+                <div class="fx-info">
+                  <div class="fx-name">صوت 8D ثلاثي الأبعاد</div>
+                  <div class="fx-desc">دوران صوتي سينمائي حول الرأس</div>
+                </div>
+                <div class="fx-switch" id="fx8dSwitch"><i class="fa-solid fa-toggle-off"></i></div>
+              </div>
+
+              <!-- Effect 3: Concert Hall Reverb / صدى الحفلات -->
+              <div class="fx-card" id="fxCardReverb" onclick="toggleReverbMode()">
+                <div class="fx-icon"><i class="fa-solid fa-water"></i></div>
+                <div class="fx-info">
+                  <div class="fx-name" id="fxReverbTitle">صدى واستوديو (Reverb)</div>
+                  <div class="fx-desc">ارتداد صوتي شبيه بالحفلات المباشرة</div>
+                </div>
+                <div class="fx-switch" id="fxReverbSwitch"><i class="fa-solid fa-toggle-off"></i></div>
+              </div>
+
+              <!-- Effect 4: Mega Bass Boost -->
+              <div class="fx-card" id="fxCardBass" onclick="cycleBassBoostLevel()">
+                <div class="fx-icon"><i class="fa-solid fa-compact-disc"></i></div>
+                <div class="fx-info">
+                  <div class="fx-name">مضخم البيس (Mega Bass)</div>
+                  <div class="fx-desc" id="fxBassDesc">0 dB (عادي)</div>
+                </div>
+                <div class="fx-level-badge" id="fxBassBadge">OFF</div>
+              </div>
+
+              <!-- Effect 5: Playback Speed & Pitch -->
+              <div class="fx-card-wide">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <span style="font-size: 12px; font-weight: 600; color: #b3b3c9;"><i class="fa-solid fa-gauge-high"></i> سرعة ونبرة الصوت</span>
+                  <span id="speedValueLabel" style="font-size: 12px; color: #1db954; font-weight: 700;">1.0x</span>
+                </div>
+                <div class="speed-btn-group">
+                  <button class="speed-btn" onclick="setAudioSpeed(0.75)">0.75x</button>
+                  <button class="speed-btn" onclick="setAudioSpeed(0.9)">0.9x</button>
+                  <button class="speed-btn active" onclick="setAudioSpeed(1.0)">1.0x</button>
+                  <button class="speed-btn" onclick="setAudioSpeed(1.15)">1.15x</button>
+                  <button class="speed-btn" onclick="setAudioSpeed(1.25)">1.25x</button>
+                  <button class="speed-btn" onclick="setAudioSpeed(1.5)">1.5x</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Real-time Synced Lyrics -->
+        <div class="np-right-pane">
+          <div class="np-lyrics-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-microphone-lines" style="color: #1db954;"></i>
+              <span style="font-weight: 700; font-size: 15px;" id="npLyricsHeading">كلمات الأغنية المتزامنة</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="lyrics-source-badge" id="npLyricsSourceBadge">Auto-Detecting...</span>
+              <button class="top-action-btn" onclick="editLyricsBtn.click()" title="Edit / Paste Lyrics" style="padding: 4px 10px; font-size: 12px;">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button class="top-action-btn" onclick="autoDetectLyrics(currentSong, true)" title="Retry Lyrics" style="padding: 4px 10px; font-size: 12px;">
+                <i class="fa-solid fa-rotate"></i>
+              </button>
+            </div>
+          </div>
+          <div class="np-lyrics-scroll-container" id="npLyricsContainer">
+            <div style="text-align: center; color: #8c8ca5; padding: 40px 0;">
+              <i class="fa-solid fa-spinner fa-spin" style="font-size: 24px; color: #1db954;"></i>
+              <p style="margin-top: 12px;">جاري تحميل ومزامنة الكلمات...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /#nowPlayingModal -->
+  <!-- Add to Playlist Modal -->
+  <div class="modal" id="playlistModal" style="display: none;">
+    <div class="modal-content" style="max-width: 440px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="font-size: 18px; margin: 0;"><i class="fa-solid fa-list-ul" style="color: #1db954;"></i> <span id="plModalTitle">Add to Playlist</span></h3>
+        <button class="modal-btn-icon" onclick="closePlaylistModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Create New Playlist -->
+      <div style="display: flex; gap: 8px; margin-bottom: 18px;">
+        <input type="text" id="newPlaylistInput" placeholder="New Playlist Name / اسم القائمة..." style="flex: 1; padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); background: #12121a; color: #fff; font-size: 13px;" onkeydown="if(event.key === 'Enter') createNewPlaylistFromModal()" />
+        <button onclick="createNewPlaylistFromModal()" style="background: #1db954; color: #000; border: none; padding: 0 16px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 13px;">
+          <i class="fa-solid fa-plus"></i> <span id="createPlBtnLabel">Create</span>
+        </button>
+      </div>
+
+      <!-- Existing Playlists List -->
+      <div style="font-size: 12px; color: #8c8ca5; text-transform: uppercase; font-weight: 700; margin-bottom: 8px;" id="plListHeading">Existing Playlists</div>
+      <div id="playlistModalList" style="max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
+        <div style="text-align: center; color: #8c8ca5; padding: 20px 0;"><i class="fa-solid fa-spinner fa-spin"></i> Loading playlists...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Playing Queue Drawer Modal -->
+  <div class="modal" id="queueModal" style="display: none;">
+    <div class="modal-content" style="max-width: 520px; max-height: 82vh; display: flex; flex-direction: column;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <h3 style="font-size: 18px; margin: 0;"><i class="fa-solid fa-list-check" style="color: #1db954;"></i> <span id="queueModalTitle">Playing Queue</span></h3>
+          <span class="queue-count-badge" id="queueCountBadge" style="padding: 2px 8px; border-radius: 12px; background: rgba(29, 185, 84, 0.15); color: #1db954; font-size: 11px; font-weight: 700;">0 tracks</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="top-action-btn" onclick="shuffleCurrentQueue()" title="Shuffle Queue" style="padding: 5px 10px; font-size: 12px;">
+            <i class="fa-solid fa-shuffle"></i>
+          </button>
+          <button class="top-action-btn" onclick="clearCurrentQueue()" title="Clear Queue" style="padding: 5px 10px; font-size: 12px; color: #ef4444;">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+          <button class="modal-btn-icon" onclick="toggleQueueModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+
+      <!-- Current Song Playing Card -->
+      <div id="queueCurrentSongCard" style="background: rgba(29, 185, 84, 0.08); border: 1px solid rgba(29, 185, 84, 0.25); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; gap: 12px;">
+        <!-- Filled dynamically -->
+      </div>
+
+      <!-- Upcoming Queue List -->
+      <div style="font-size: 12px; color: #8c8ca5; text-transform: uppercase; font-weight: 700; margin-bottom: 8px;" id="queueUpcomingHeading">Next In Queue</div>
+      <div id="queueListContainer" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
+        <!-- Filled dynamically -->
+      </div>
+    </div>
+  </div><!-- /#queueModal -->
+  <!-- Sleep Timer Modal -->
+  <div class="modal" id="sleepTimerModal" style="display: none;">
+    <div class="modal-content" style="max-width: 380px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="font-size: 18px; margin: 0;"><i class="fa-solid fa-moon" style="color: #6366f1;"></i> <span id="sleepModalTitle">Sleep Timer</span></h3>
+        <button class="modal-btn-icon" onclick="toggleSleepTimerModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p style="font-size: 13px; color: #8c8ca5; margin-bottom: 16px;" id="sleepModalDesc">Music will fade out smoothly and pause when timer ends.</p>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+        <button class="action-btn" onclick="setSleepTimer(15)" style="background: rgba(255,255,255,0.06); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); color: #fff; cursor: pointer; font-weight: 600;">15 Minutes</button>
+        <button class="action-btn" onclick="setSleepTimer(30)" style="background: rgba(255,255,255,0.06); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); color: #fff; cursor: pointer; font-weight: 600;">30 Minutes</button>
+        <button class="action-btn" onclick="setSleepTimer(45)" style="background: rgba(255,255,255,0.06); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); color: #fff; cursor: pointer; font-weight: 600;">45 Minutes</button>
+        <button class="action-btn" onclick="setSleepTimer(60)" style="background: rgba(255,255,255,0.06); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); color: #fff; cursor: pointer; font-weight: 600;">1 Hour</button>
+      </div>
+
+      <button class="action-btn" onclick="setSleepTimer('end_of_song')" style="width: 100%; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #a5b4fc; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600; margin-bottom: 10px;">
+        <i class="fa-solid fa-stopwatch"></i> <span id="sleepEndOfSongLabel">End of Current Song</span>
+      </button>
+
+      <button id="cancelSleepTimerBtn" onclick="cancelSleepTimer()" style="display: none; width: 100%; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+        <i class="fa-solid fa-ban"></i> Cancel Timer
+      </button>
+    </div>
+  </div>
+
+  <!-- Local subtitle lyrics picker (.srt / .vtt / .lrc) -->
+  <div class="modal-overlay" id="subtitleModal">
+    <div class="modal-content" style="max-width: 720px; width: 92%; max-height: 84vh; display: flex; flex-direction: column;">
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px;">
+        <h3 style="font-size: 17px; font-weight: 700;">
+          <i class="fa-solid fa-closed-captioning" style="color: #1db954;"></i>
+          <span id="subtitleModalTitle">ملفات الكلمات الموقّتة (SRT / LRC / VTT)</span>
+        </h3>
+        <button class="control-btn" onclick="closeSubtitleModal()" title="Close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p style="font-size: 12px; color: #8c8ca5; margin-bottom: 10px; word-break: break-all;" id="subtitleFolderLabel">لم يتم اختيار مجلد كلمات بعد.</p>
+      <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+        <button class="top-action-btn" onclick="chooseSubtitleFolder()"><i class="fa-solid fa-folder-open"></i> اختر مجلد الكلمات</button>
+        <button class="top-action-btn" onclick="rescanSubtitles()"><i class="fa-solid fa-rotate"></i> إعادة الفحص</button>
+        <button class="top-action-btn" onclick="pickSingleSubtitleFile()"><i class="fa-solid fa-file-import"></i> اختر ملفاً واحداً</button>
+      </div>
+      <input type="text" id="subtitleSearchInput" placeholder="ابحث في ملفات الكلمات..." style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); background: #12121a; color: #fff; font-size: 13px; margin-bottom: 10px;" />
+      <div id="subtitleList" style="overflow-y: auto; flex: 1; min-height: 120px;"></div>
+      <p style="font-size: 11px; color: #7b7b95; margin-top: 10px;">
+        يُحفظ الملف المختار لهذه الأغنية تلقائياً. التطابق التلقائي يعمل مع أغاني الجهاز المحلية، ويمكنك دائماً اختيار ملف آخر يدوياً.
+      </p>
+    </div>
+  </div>
+
+  <!-- YouTube Audio Downloader Modal -->
+  <div class="modal-overlay" id="ytDownloadModal" style="display: none;">
+    <div class="modal-content" style="max-width: 520px; width: 92%; max-height: 88vh; display: flex; flex-direction: column;">
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 14px;">
+        <h3 style="font-size: 17px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-cloud-arrow-down" style="color: #ff0033;"></i>
+          <span id="ytDownloadModalTitle">تحميل المقطع كصوت عالي الدقة</span>
+        </h3>
+        <button class="control-btn" onclick="closeYtDownloadModal()" title="Close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Preview Card -->
+      <div class="yt-download-card" id="ytDownloadInfoCard">
+        <img id="ytModalThumb" src="" style="width: 80px; height: 50px; object-fit: cover; border-radius: 6px; background: #000;" />
+        <div style="overflow: hidden; flex: 1;">
+          <div id="ytModalTrackTitle" style="font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">-</div>
+          <div id="ytModalTrackArtist" style="font-size: 12px; color: #8c8ca5; margin-top: 2px;">YouTube</div>
+        </div>
+      </div>
+
+      <div id="ytDownloadSetupSection" style="display: flex; flex-direction: column; gap: 12px; overflow-y: auto;">
+        <!-- Destination Options -->
+        <div>
+          <label style="font-size: 12px; font-weight: 700; color: #8c8ca5; text-transform: uppercase; margin-bottom: 8px; display: block;">
+            مسار الحفظ (Destination):
+          </label>
+
+          <!-- Cloud Option -->
+          <div class="yt-option-box active" id="ytOptCloud" onclick="selectYtDest('cloud')">
+            <input type="radio" name="ytDestRadio" id="ytRadioCloud" value="cloud" checked style="margin-top: 3px;" />
+            <div style="flex: 1;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-size: 13px; font-weight: 700; color: #3b82f6;"><i class="fa-solid fa-cloud"></i> السيرفر السحابي (كلاود Navidrome)</span>
+                <span style="font-size: 11px; background: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 2px 6px; border-radius: 4px;">مباشر للمكتبة</span>
+              </div>
+              <div id="ytCloudPathPreview" style="font-size: 11px; color: #8c8ca5; font-family: monospace; margin-top: 4px; word-break: break-all;">\\your-server.local\Music1</div>
+              <div style="font-size: 11px; color: #10b981; margin-top: 3px;">
+                <i class="fa-solid fa-circle-check"></i> يتم الحفظ في سيرفر الموسيقى وتحديث المكتبة تلقائياً لتظهر بكل أجهزتك.
+              </div>
+            </div>
+          </div>
+
+          <!-- Local Option -->
+          <div class="yt-option-box" id="ytOptLocal" onclick="selectYtDest('local')">
+            <input type="radio" name="ytDestRadio" id="ytRadioLocal" value="local" style="margin-top: 3px;" />
+            <div style="flex: 1;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-size: 13px; font-weight: 700; color: #10b981;"><i class="fa-solid fa-laptop"></i> جهاز الكمبيوتر (تخزين محلي)</span>
+                <button type="button" class="top-action-btn" onclick="event.stopPropagation(); pickYtLocalFolder();" style="padding: 2px 8px; font-size: 11px;">
+                  <i class="fa-solid fa-folder-open"></i> تغيير المجلد
+                </button>
+              </div>
+              <div id="ytLocalPathPreview" style="font-size: 11px; color: #8c8ca5; font-family: monospace; margin-top: 4px; word-break: break-all;">-</div>
+              <div style="font-size: 11px; color: #8c8ca5; margin-top: 3px;">
+                حفظ الملف الصوتي في مجلد على هذا الجهاز.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Audio Format & Quality -->
+        <div>
+          <label style="font-size: 12px; font-weight: 700; color: #8c8ca5; text-transform: uppercase; margin-bottom: 8px; display: block;">
+            جودة الصوت والصيغة (Audio Quality & Format):
+          </label>
+          <select id="ytAudioFormatSelect" onchange="onYtFormatChanged()" style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); background: #161622; color: #fff; font-size: 13px; outline: none;">
+            <option value="mp3_320" selected>MP3 فائق الدقة (320 kbps - أعلى معدل بت نقي) [الموصى به]</option>
+            <option value="flac">FLAC استوديو أصلي (Lossless - بدون أي ضغط نهائياً)</option>
+            <option value="m4a_256">M4A / AAC أصلي (256 kbps - نقي وخفيف)</option>
+            <option value="opus">Opus يوتيوب الخام (Pristine YouTube Stream)</option>
+            <option value="wav">WAV موجي استوديو غير مضغوط</option>
+          </select>
+        </div>
+
+        <!-- Sample Rate Frequency -->
+        <div>
+          <label style="font-size: 12px; font-weight: 700; color: #8c8ca5; text-transform: uppercase; margin-bottom: 8px; display: block;">
+            التردد الصوتي (Sample Rate / Frequency):
+          </label>
+          <select id="ytAudioSampleRateSelect" style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); background: #161622; color: #fff; font-size: 13px; outline: none;">
+            <option value="48000" selected>48,000 Hz (48 kHz) - تردد الاستوديو الاحترافي (الأنسب لليوتيوب)</option>
+            <option value="44100">44,100 Hz (44.1 kHz) - تردد الأقراص المدمجة القياسي (CD Quality)</option>
+            <option value="source">تلقائي (حسب تردد المصدر الأصلي بدون تغيير)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Live Progress Section (hidden initially) -->
+      <div id="ytDownloadProgressSection" style="display: none; padding: 10px 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px;">
+          <span id="ytDownloadPhaseText" style="color: #fff; font-weight: 600;"><i class="fa-solid fa-spinner fa-spin"></i> جاري تنزيل الصوت...</span>
+          <span id="ytDownloadPercentText" style="color: #ff0033; font-weight: 700; font-family: monospace;">0%</span>
+        </div>
+        <div class="yt-progress-container">
+          <div class="yt-progress-fill" id="ytDownloadBarFill"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #8c8ca5; margin-top: 4px;">
+          <span id="ytDownloadDetailsText">0 MB / 0 MB</span>
+          <span id="ytDownloadSpeedText">0 KB/s</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06);">
+        <button type="button" id="ytBtnCancel" class="top-action-btn" onclick="closeYtDownloadModal()" style="font-size: 13px;">إلغاء</button>
+        <button type="button" id="ytBtnStartDownload" class="top-action-btn" onclick="startYouTubeAudioDownload()" style="background: #ff0033; color: #fff; border: none; padding: 10px 20px; font-weight: 700; border-radius: 8px; font-size: 13px;">
+          <i class="fa-solid fa-download"></i> بدء التحميل
+        </button>
+        <button type="button" id="ytBtnOpenFolder" class="top-action-btn" onclick="openDownloadedAudioFolder()" style="display: none; background: #1db954; color: #000; font-weight: 700; border: none; padding: 10px 18px; border-radius: 8px; font-size: 13px;">
+          <i class="fa-solid fa-folder-open"></i> عرض الملف
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login / credentials. The password is handed to the native store and never
+       kept in the page (see preload.js + secure-store.js / EncryptedSharedPreferences). -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal-content" style="max-width: 460px; width: 92%;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+        <i class="fa-solid fa-lock" style="color: #1db954; font-size: 20px;"></i>
+        <h3 style="font-size: 17px; font-weight: 700;">تسجيل الدخول إلى Navidrome</h3>
+      </div>
+      <p style="font-size: 12px; color: #8c8ca5; margin-bottom: 14px; line-height: 1.6;">
+        تُخزَّن كلمة المرور مشفّرة بمفتاح النظام (DPAPI على ويندوز، EncryptedSharedPreferences على أندرويد)
+        ولا تُكتب نصّاً صريحاً في ملفات التطبيق ولا في هذا الملف.
+      </p>
+      <label style="font-size: 12px; color: #b3b3c9;">عنوان السيرفر</label>
+      <input type="text" id="loginUrl" placeholder="http://192.168.1.10:4533" style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); background: #12121a; color: #fff; font-size: 13px; margin: 6px 0 12px 0;" />
+      <label style="font-size: 12px; color: #b3b3c9;">اسم المستخدم</label>
+      <input type="text" id="loginUser" autocomplete="username" style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); background: #12121a; color: #fff; font-size: 13px; margin: 6px 0 12px 0;" />
+      <label style="font-size: 12px; color: #b3b3c9;">كلمة المرور</label>
+      <input type="password" id="loginPass" autocomplete="current-password" style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); background: #12121a; color: #fff; font-size: 13px; margin: 6px 0 12px 0;" />
+      <div id="loginError" style="display: none; color: #ef4444; font-size: 12px; margin-bottom: 10px;"></div>
+      <div style="display: flex; gap: 8px; justify-content: flex-end;">
+        <button class="top-action-btn" onclick="closeLoginModal()">إلغاء</button>
+        <button class="top-action-btn" id="loginSubmitBtn" onclick="submitLogin()" style="background: #1db954; color: #04140a; font-weight: 700;">دخول</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating, draggable, semi-transparent lyrics overlay.
+       Kept out of the way of the UI on purpose: the user drags it wherever they
+       want and the position/opacity/size are remembered per device. -->
+  <div id="floatLyrics" class="float-lyrics" hidden>
+    <div class="float-lyrics-bar" id="floatLyricsBar">
+      <span class="float-lyrics-grip" title="اسحب لتحريك الكلمات"><i class="fa-solid fa-grip-lines"></i></span>
+      <button class="float-lyrics-btn" id="floatLyricsOpacityDown" title="أكثر شفافية">−</button>
+      <button class="float-lyrics-btn" id="floatLyricsOpacityUp" title="أقل شفافية">+</button>
+      <button class="float-lyrics-btn" id="floatLyricsSizeToggle" title="حجم الخط">A</button>
+      <button class="float-lyrics-btn" id="floatLyricsClose" title="إغلاق">✕</button>
+    </div>
+    <div class="float-lyrics-text" id="floatLyricsText">—</div>
+  </div>
+
+  <audio id="audioElement"></audio>
+
+  <!-- ===================================================================
+       Persistent YouTube media layer.
+
+       Deliberately NOT inside #contentArea. Every view renderer replaces
+       contentArea.innerHTML, so anything living there is destroyed the moment the
+       user navigates — which is exactly why the YouTube player used to stop as
+       soon as you left its section. The <audio> element above survives navigation
+       for the same reason: it is outside the volatile area. This layer follows
+       that existing pattern instead of inventing a new one.
+
+       The official iframe is created here ONCE per video and is never removed,
+       re-parented or reloaded while a video is loaded — moving an iframe in the
+       DOM reloads it. To show the video, this layer is positioned over the slot
+       the YouTube view reserves (see positionYouTubeLayer); when you leave, it is
+       moved off-screen rather than hidden, because display:none can stop playback.
+       =================================================================== -->
+  <div id="ytPersistentLayer" aria-hidden="true">
+    <div id="ytPersistentSurface"></div>
+  </div>
+
+  <!-- Shared YouTube embed layer: must load before renderer.js, which uses it. -->
+  <script src="youtube-embed.js"></script>
+  <script src="renderer.js"></script>
+</body>
+</html>

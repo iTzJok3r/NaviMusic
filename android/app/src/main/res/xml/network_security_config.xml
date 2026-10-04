@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Archimedes network security policy.
+
+  IMPORTANT (crash history): the pin element attribute is `digest`, NOT `algorithm`.
+  A pin-set with a missing/unknown digest makes the platform throw
+  XmlConfigSource$ParserException("Unsupported pin digest algorithm: null") on the
+  very first isCleartextTrafficPermitted() call, which kills the process before
+  Application.onCreate -> the app "crashes instantly on launch". Any pin block that
+  is left half-configured reproduces that crash, so keep this file valid at all times.
+
+  Also note: <domain> accepts hostnames / IP literals only. CIDR ranges
+  (192.168.0.0/16) and wildcards (*.local) are NOT valid here, and a broken domain
+  entry can make the whole file fail to parse. That is why the LAN policy below is
+  expressed with base-config instead of fake per-subnet entries.
+
+  To pin a real remote HTTPS endpoint, replace the commented block with your own
+  SPKI hash (openssl s_client -connect host:443 | openssl x509 -pubkey -noout |
+  openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64):
+
+    <domain-config cleartextTrafficPermitted="false">
+      <domain includeSubdomains="true">music.example.com</domain>
+      <pin-set expiration="2027-12-31">
+        <pin digest="SHA-256">REPLACE_WITH_REAL_BASE64_SPKI_HASH</pin>
+      </pin-set>
+      <trust-anchors><certificates src="system" /></trust-anchors>
+    </domain-config>
+-->
+<network-security-config>
+
+  <!-- The server URL is user-configurable at runtime and is normally a plain-HTTP
+       LAN address (e.g. http://192.168.1.10:4533), which cannot be enumerated as a
+       static <domain> entry. Cleartext is therefore permitted for the app, matching
+       android:usesCleartextTraffic="true" in the manifest. Traffic to any HTTPS URL
+       the user configures still uses TLS; certificate validation is unchanged. -->
+  <base-config cleartextTrafficPermitted="true">
+    <trust-anchors>
+      <!-- System CAs only. User-installed CAs are deliberately NOT trusted, so an
+           attacker who installs a root CA on the device still cannot MITM HTTPS. -->
+      <certificates src="system" />
+    </trust-anchors>
+  </base-config>
+
+</network-security-config>
