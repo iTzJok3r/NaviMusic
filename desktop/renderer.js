@@ -292,7 +292,7 @@ function buildSubsonicUrlFor(base, endpoint, extraParams = {}) {
 
    The candidates are derived from the configured URL, so this needs no new
    setting and no user action. */
-const ENDPOINT_TIMEOUT_MS = 8000;
+const ENDPOINT_TIMEOUT_MS = 25000;
 
 let lastEndpointFailures = [];
 window.__lastEndpointFailures = () => lastEndpointFailures.slice();
@@ -1807,7 +1807,7 @@ function renderSongsSkeleton(filterMode = 'all') {
 async function fetchAllServerSongs(onChunk = null) {
   const collected = [];
   const seen = new Set();
-  const PAGE = 1000;
+  const PAGE = 300;
   for (let offset = 0; offset < 200000; offset += PAGE) {
     let batch = [];
     try {
